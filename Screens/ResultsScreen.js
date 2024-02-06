@@ -152,6 +152,7 @@ export default function ResultsScreen({navigation}) {
           <Button title="Next Page" onPress={()=>{console.log("Button Clicked");LoadNextIDs();}}></Button>
         </Box>
       </VStack>
+      <Button title="Song" onPress={()=>{navigation.navigate('Song')}}></Button>
       </Box>
     </View>;
   }

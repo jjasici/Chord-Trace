@@ -101,7 +101,7 @@ export default function SearchScreen({navigation}){
             <Text style={styles.chordText}>Current chords: {chordString} </Text>
           :null} 
         </View>
-        <Button title= "JSON test" onPress={()=>{getChordInfo();}}></Button>
+        <Button title="Song" onPress={()=>{navigation.navigate('Song')}}></Button>
     </View>
   );
 
