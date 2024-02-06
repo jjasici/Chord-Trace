@@ -10,16 +10,19 @@ import Song from "./Screens/SongScreen";
 import { NativeBaseProvider } from 'native-base';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
-
-
-const Stack = createStackNavigator();
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 function App() {
+
+  const Stack = createStackNavigator();
+  const queryClient = new QueryClient();
+
   useEffect(() => {
     LogBox.ignoreLogs(['In React 18, SSRProvider is not necessary and is a noop. You can remove it from your app.']);
   }, []);
   
   return (
+    <QueryClientProvider client={queryClient}>
     <NativeBaseProvider>
       <NavigationContainer>
         <Stack.Navigator>
@@ -29,6 +32,7 @@ function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </NativeBaseProvider>
+    </QueryClientProvider>
   );
 }
 

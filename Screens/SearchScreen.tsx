@@ -46,7 +46,7 @@ export default function SearchScreen({navigation}){
     <View>
       <StatusBar style="auto" />
       <View style={styles.presetContainer}>
-        <SelectDropdown style={styles.preset}
+        <SelectDropdown 
           data={presets}
           defaultButtonText='Select Preset'
           buttonStyle = {styles.preset}
@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   presetContainer:{
-    alignItems: 'left',
-    justifyContent: 'left',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
     paddingLeft: 20,
     paddingTop: 20,
   },
@@ -186,8 +186,8 @@ const styles = StyleSheet.create({
   },
   button:{
     backgroundColor: 'aquamarine',
-    justifyContent: 'centre',
-    alignContent:'centre',
+    justifyContent: 'center',
+    alignContent:'center',
     padding:10,
   },
   right:{

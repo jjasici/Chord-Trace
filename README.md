@@ -4,7 +4,7 @@ TODO: write a summary of the app
 
 ## Install
 
-```npx expo install```
+```npm i```
 
 ## Usage
 

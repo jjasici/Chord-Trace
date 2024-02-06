@@ -5,9 +5,14 @@ import {useState, useEffect} from "react";
 import * as React from 'react';
 import {Box, VStack, HStack} from 'native-base';
 
+type ChordString = {
+  chordString: string;
+}
+
 export default function ResultsScreen({navigation}) {
   const route = useRoute();
-  const chordString=route.params?.chordString;
+  const params=route.params as ChordString;
+  const chordString = params.chordString;
   const [error, setError]=useState();
   const [response,setResponse]=useState();
   const [isLoading, setLoading]=useState(true);
