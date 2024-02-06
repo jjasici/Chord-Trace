@@ -13,11 +13,13 @@ TODO: write a summary of the app
 ## Project plan
 - [] Presets (refactor)
 - [] Total chords (refactor)
-- [] Search chords from api
-- [] Get list of song ids from api
-- [] Get data using ids from api
+- [x] Search chords from api
+- [x] Get list of song ids from api
+- [x] Get data using ids from api
 - [] Song screen with info
-- [] Play song
+- [] Play song (routing)
 - [] Display song waveform
+- [] Styling
+
 
 
