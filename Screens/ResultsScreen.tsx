@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Button, Image } from 'react-native';
 import {useRoute} from "@react-navigation/native";
 import {useState, useEffect} from "react";
 import * as React from 'react';
-import {Box, VStack, HStack} from 'native-base';
+import {Box, VStack} from 'native-base';
 
 type ChordString = {
   chordString: string;
@@ -18,7 +18,7 @@ export default function ResultsScreen({navigation}) {
   const [isLoading, setLoading]=useState(true);
   const [tracks, setTracks]=useState([]);
   const [offset, setOffset]=useState(0);
-  const [moreTracks, setMoreTracks]=useState(true);
+  //const [moreTracks, setMoreTracks]=useState(true);
   const [tracksBool, setTrackBool ]=useState(true);
   const [reload, setReload]=useState(true);
   
@@ -26,7 +26,7 @@ export default function ResultsScreen({navigation}) {
   useEffect(()=>{
     getResponse();
   });
-
+  
   const getResponse=async()=>{
     if (reload){
       setReload(false);
@@ -63,8 +63,6 @@ export default function ResultsScreen({navigation}) {
       let Tracks = tracks;
       Tracks.push(result);
       setTracks(Tracks);
-      //console.log("Track found with no error");
-      //console.log(tracks);
       console.log(tracks.length);
     },
     (error)=>{
@@ -85,79 +83,48 @@ export default function ResultsScreen({navigation}) {
       return <Text>{error}</Text>;
     }
     if (response!=null&&tracks.length==5){
-      //console.log(response);
-      //console.log(response[0].id);
-      //console.log(tracks);
-      //console.log("Title: " + tracks[0].title);
-      //console.log("Artist: "+ tracks[0].contributors[0].name);
       return returnIDs();
     }
   };
 
+  let Results=[];
+  function getResults(){
+    for(let i=0;i<5;i++){
+      Results.push(
+        <Box key={i} style={styles.Box}>
+          <View style={styles.title}>
+            <Button
+              title={tracks[i].title_short} 
+              onPress={() => {
+                console.log("Track id:")
+                console.log(tracks[i].id)
+                navigation.navigate('Song', {chosenSong:tracks[i].id})
+              }}>
+            </Button>
+          </View>
+          <Text> Artist: {tracks[i].contributors[0].name}</Text>
+          <Image 
+            style={styles.img}
+            source={{
+              uri:tracks[i].album.cover
+            }}
+          />
+        </Box>
+      )
+    }
+  }
+
   const returnIDs =()=>{
     return <View>
-      <Box border="1" borderRadius="md">
+      <Box borderRadius="md">
       <VStack space="5">
         {offset!=0? 
-          <Box>
           <Button title="Previous Page" onPress={()=>{LoadPreviousIDs();}}></Button>
-          </Box>
         : null}
-        <Box style={styles.Box}>
-          <Text>Title: {tracks[0].title_short}</Text>
-          <Text>Artist: {tracks[0].contributors[0].name}</Text>
-          <Image 
-            style={styles.img}
-            source={{
-              uri:tracks[0].album.cover
-            }}
-          />
-        </Box>
-        <Box style={styles.Box}>
-          <Text>Title: {tracks[1].title_short}</Text>
-          <Text>Artist: {tracks[1].contributors[0].name}</Text>
-          <Image 
-            style={styles.img}
-            source={{
-              uri:tracks[1].album.cover
-            }}
-          />
-        </Box>
-        <Box style={styles.Box}>
-          <Text>Title: {tracks[2].title_short}</Text>
-          <Text>Artist: {tracks[2].contributors[0].name}</Text>
-          <Image 
-            style={styles.img}
-            source={{
-              uri:tracks[2].album.cover
-            }}
-          />
-        </Box>
-        <Box style={styles.Box}>
-          <Text>Title: {tracks[3].title_short}</Text>
-          <Text>Artist: {tracks[3].contributors[0].name}</Text>
-          <Image 
-            style={styles.img}
-            source={{
-              uri:tracks[3].album.cover
-            }}
-          />
-        </Box>
-        <Box style={styles.Box}>
-          <Text>Title: {tracks[4].title_short}</Text>
-          <Text>Artist: {tracks[4].contributors[0].name}</Text>
-          <Image 
-            style={styles.img}
-            source={{
-              uri:tracks[4].album.cover
-            }}
-          />
-        </Box>
-        <Box >
-          <Button title="Next Page" onPress={()=>{console.log("Button Clicked");LoadNextIDs();}}></Button>
-        </Box>
+        {getResults()}
+        {Results}
+        <Button title="Next Page" onPress={()=>{console.log("Button Clicked");LoadNextIDs();}}></Button>
       </VStack>
-      <Button title="Song" onPress={()=>{navigation.navigate('Song')}}></Button>
       </Box>
     </View>;
   }
@@ -188,16 +155,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   Box:{
-    backgroundColor: 'aquamarine',
-    padding:10,
-    height: 70,
-    width: 320
+    backgroundColor: 'lightgray',
+    padding:5,
+    height:75,
+    width: 350,
+    justifyContent:'flex-start',
+    alignItems:'flex-start',
+    borderRadius: 10
   },
   img:{
     padding:1,
-    width:50,
-    height: 50,
-    top:-35,
-    left:250
+    width:60,
+    height: 60,
+    top:-52,
+    left:275,
+    borderRadius: 10
+  },
+  title:{
+    alignItems:'flex-start',
   }
 });

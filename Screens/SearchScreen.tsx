@@ -7,8 +7,6 @@ import { HStack } from 'native-base';
 import * as info from '../chords.json';
 
 
-const totalChords = ["Amaj","Bmin", "Dbmin", "Dmaj", "Emaj", "Gbmin", "Bmaj", "Ebmin", "Gbmaj", "Abmin", "Cmaj", "Dmin", "Emin", "Fmaj", "Gmaj", "Amin","Gmin","Bbmaj"];
-const presets =["None","Amaj", "Amin", "Bmaj", "Bmin", "Cmaj", "Cmin", "Dmaj", "Dmin", "Emaj", "Emin", "Fmaj", "Fmin", "Gmaj", "Gmin"];
 var chordClicked ="";
 var chords =[];
 
@@ -16,11 +14,11 @@ var chords =[];
 export default function SearchScreen({navigation}){
   const [index, setIndex] =useState(0);
   const [currentPreset, setPreset]=useState("None");
-  const [chordIndexes, setI]=useState([]);
+  const [presets, setPresets] = useState([]);
   const [isEmpty, setIsEmpty] =useState(true);
   const [chordString, setChordString]=useState("");
   const [theoryString, setTheoryString] = useState(""); 
-  const [chordInfo, setChordInfo] = useState();
+  const [chordsToClick, setChordsToClick]=useState([]);
 
   useEffect(()=>{
     getChordInfo();
@@ -28,6 +26,45 @@ export default function SearchScreen({navigation}){
 
   const getChordInfo = () =>{
     console.log(info);
+    let totalPresets =[];
+    for (let i=0; i<info.presets.length;i++){
+      totalPresets = presets;
+      totalPresets.push(info.presets[i].key);
+      setPresets(totalPresets);
+    }
+  }
+
+  let Buttons =[];
+  function buttons(){
+    for (let i=0;i<3;i++){
+      Buttons.push(
+        <View key={i} style={styles.button}>
+          <Button title={chordsToClick[index+i]} onPress={()=>{chordClicked=chordsToClick[index+i]; setSearchArray(); setIsEmpty(false); setTheory();}}></Button>
+        </View>
+      )
+    }
+  }
+
+  function setTheory(){
+    setTheoryString("");
+    let theory="";
+    let chord;
+    for(let i=0;i<info.chords.length;i++){
+      if(info.chords[i].name==chordClicked){
+        chord = info.chords[i];
+      }
+    }
+    if (chord.type=="minor") {
+      theory+=info.terminology.minor;
+    } 
+    else{
+      theory+=info.terminology.major;
+    }
+    theory+=chord.notes + ". ";
+    if(chord.flat){
+      theory+= "\n\n" + info.terminology.flat;
+    }
+    setTheoryString(theory);
   }
 
   function setChordText(){
@@ -42,6 +79,20 @@ export default function SearchScreen({navigation}){
     }
   }
 
+  function DealWithPresets(Preset){
+    for(let i=0; i<info.presets.length;i++){
+      if (info.presets[i].key==Preset){
+        let currentChordSelection=[];
+        console.log(currentChordSelection);
+        for (let j=0; j<info.presets[i].chords.length;j++){
+          currentChordSelection.push(info.presets[i].chords[j]);
+        }
+        setChordsToClick(currentChordSelection);
+        console.log(chordsToClick);
+      } 
+    }
+  }
+
   return (
     <View>
       <StatusBar style="auto" />
@@ -53,12 +104,16 @@ export default function SearchScreen({navigation}){
           onSelect={(selectedItem)=>{ 
           setPreset(selectedItem); 
           console.log(currentPreset);
-          setPresetIndex(selectedItem); 
+          let empty =[];
+          setChordsToClick(empty);
+          DealWithPresets(selectedItem);
+          console.log(chordsToClick);
+          //setPresetIndex(selectedItem); 
           setIndex(0);
           chords=[];
           setIsEmpty(true);
           setChordString("");
-          console.log(chordIndexes);
+          //console.log(chordIndexes);
           console.log(chords);
           console.log(index)}}
 
@@ -66,85 +121,53 @@ export default function SearchScreen({navigation}){
       </View>
       <HStack space={3} justifyContent="center" marginTop={10}>
         <View style={styles.left}>
-          {(index==3 && chordIndexes.length>0)? <Button title="Prev" onPress={()=>{setIndex(index-3)}}></Button> :null}
+          {(index==3 && chordsToClick.length>0)? <Button title="Prev" onPress={()=>{setIndex(index-3)}}></Button> :null}
         </View>
-        {chordIndexes.length>0?
+        {chordsToClick.length>0?
           <HStack space={3} justifyContent="center">
-            <View style={styles.button}>
-              <Button title={totalChords[chordIndexes[index]]} onPress={()=>{chordClicked=totalChords[chordIndexes[index]]; setSearchArray(); setIsEmpty(false); setChordText();}}></Button>
-            </View>
-            <View style={styles.button}>
-              <Button title={totalChords[chordIndexes[index+1]]} onPress={()=>{chordClicked=totalChords[chordIndexes[index+1]]; setSearchArray(); setIsEmpty(false); setChordText();}}></Button>
-            </View>
-            <View style={styles.button}>
-              <Button title={totalChords[chordIndexes[index+2]]} onPress={()=>{chordClicked=totalChords[chordIndexes[index+2]]; setSearchArray(); setIsEmpty(false); setChordText();}}></Button>
-            </View>
+            {buttons()}
+            {Buttons}
           </HStack>
           : null
         }
         <View style={styles.right}>
-          {(index==0 && chordIndexes.length>0)? <Button title="Next" onPress={()=>{setIndex(index+3)}}></Button> :null}
+          {(index==0 && chordsToClick.length>0)? <Button title="Next" onPress={()=>{setIndex(index+3)}}></Button> :null}
         </View>
       </HStack>
       <View>
-          {!isEmpty?
-            <Button title="Submit" onPress={()=>{
-              setChordText();
-              console.log(chordString);
-              navigation.navigate('Results', {chordString:chordString})
-            }}></Button>
-          :null}
-          {!isEmpty?
-            <Button title= "Clear search" onPress={()=>{ clearSearch();}}></Button>
-          :null}
+        <HStack space={5} justifyContent="center" marginTop={2}>
+            <View>
+              {!isEmpty?
+                <Button title= "Clear search" onPress={()=>{ clearSearch();}}></Button>
+              :null}
+            </View>
+          <View>
+              {!isEmpty?
+                <Button title="Submit" onPress={()=>{
+                  console.log(chordString);
+                  navigation.navigate('Results', {chordString:chordString})
+                }}></Button>
+              :null}
+          </View>
+        </HStack>
           {!isEmpty? 
             <Text style={styles.chordText}>Current chords: {chordString} </Text>
           :null} 
+      </View>
+      {chordClicked!=""?
+        <View style={styles.terminologyArea}>
+          <Text style={{fontSize:15}}>{theoryString}</Text>
         </View>
-        <Button title="Song" onPress={()=>{navigation.navigate('Song')}}></Button>
+      :null}
     </View>
   );
-
-  function setTheory(){
-    setTheoryString("");
-
-  }
 
   function clearSearch(){
     setChordString("");
     chords =[];
     setIsEmpty(true);
+    chordClicked="";
     console.log(chords);
-  }
-
-  function setPresetIndex(preset){
-    if (preset=="Amaj"){
-      setI([0,1,2,3,4,5]);
-    }
-    else if(preset=="Bmaj"){
-      setI([6,2,7,4,5,9]);
-    }
-    else if(preset=="Cmaj"){
-      setI([10,11,12,13,14,15]);
-    }
-    else if(preset=="Dmaj"){
-      setI([3,12,5,14,0,1]);
-    }
-    else if(preset=="Emaj"){
-      setI([4,5,9,0,6,2]);
-    }
-    else if(preset=="Fmaj"){
-      setI([13,16,15,17,10,11]);
-    }
-    else if(preset=="Gmaj"){
-      setI([14,15,1,10,3,12]);
-    }
-    else if(preset=="None"){
-      setI([0,1,2,3,4,5])
-    }
-    else{
-      setI([]);
-    }
   }
 
   function setSearchArray(){
@@ -160,6 +183,10 @@ export default function SearchScreen({navigation}){
     }
     if (!found){
       newChords.push(chordClicked);
+      chords = newChords;
+      setChordText();
+      console.log(newChords);
+      return;
     }
     chords = newChords;
     console.log(newChords);
@@ -182,13 +209,15 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   preset:{
-    backgroundColor: 'aquamarine',
+    backgroundColor: 'lightgray',
+    borderRadius: 10
   },
   button:{
-    backgroundColor: 'aquamarine',
+    backgroundColor: 'lightgray',
     justifyContent: 'center',
     alignContent:'center',
     padding:10,
+    borderRadius: 10
   },
   right:{
     marginTop: 10,
@@ -199,6 +228,14 @@ const styles = StyleSheet.create({
     marginLeft:-340,
   },
   chordText:{
-    padding:20
-  }
+    padding:10,
+    marginLeft:10,
+    fontSize:15
+  },
+  terminologyArea:{
+    padding:20,
+    backgroundColor: 'lightgray',
+    borderRadius:10,
+    margin: 10,
+  },
 });
