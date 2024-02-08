@@ -24,9 +24,9 @@
                {"name": "Gbmaj", "type" : "major", "flat": true, "notes": "Gb-Bb-Db"}, 
                {"name": "Gbmin", "type" : "minor", "flat": true, "notes": "Gb-A-Db"}],
     "presets":[{"key": "Amaj", "chords": ["Amaj","Bmin", "Dbmin", "Dmaj", "Emaj", "Gbmin"]},
-               {"key": "Amin", "chords": ["Amin","C", "Dmin", "Emin", "Fmaj", "Gmaj"]},
+               {"key": "Amin", "chords": ["Amin","Cmaj", "Dmin", "Emin", "Fmaj", "Gmaj"]},
                {"key": "Bmaj", "chords": ["Bmaj","Dbmin", "Ebmin", "Emaj", "Gbmaj", "Abmin"]}, 
-               {"key": "Bmim", "chords": ["Bmin","Dmaj", "Emin", "Gbmin", "Gmaj", "Amaj"]},
+               {"key": "Bmin", "chords": ["Bmin","Dmaj", "Emin", "Gbmin", "Gmaj", "Amaj"]},
                {"key": "Cmaj", "chords": ["Cmaj","Dmin", "Emin", "Fmaj", "Gmaj", "Amin"]},
                {"key": "Cmin", "chords": ["Cmin","Ebmaj", "Fmin", "Gmin", "Abmaj", "Bbmaj"]},
                {"key": "Dmaj", "chords": ["Dmaj","Emin", "Gbmin", "Gmaj", "Amaj", "Bmin"]},
@@ -39,5 +39,5 @@
                {"key": "Gmin", "chords": ["Gmin","Bbmaj", "Cmin", "Dmin", "Ebmaj", "Fmaj"]}],
     "terminology":{"major": "This is a major chord. Major chords sound happy and consist of the first, third and fifth notes of the major scale, in this case ",
                    "minor": "This is a minor chord. Minor chords sound sad and consist of the first, minor third and fifth notes of the major scale, in this case ",
-                   "flat": "This is a flat chord. This simply means that the root of this chord  is flat, i.e. a half-step below."}
+                   "flat": "This is also a flat chord. This simply means that the root of this chord is flat, i.e. a half-step below."}
 }
