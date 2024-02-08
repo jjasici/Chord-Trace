@@ -1,18 +1,29 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import {useRoute} from "@react-navigation/native";
 import * as React from 'react';
 import { WebView } from 'react-native-webview';
 import { useQuery } from '@tanstack/react-query';
 
+type ChosenSong ={
+  chosenSong :string;
+}
+
 export default function SongScreen({navigation}){
-
-    const TestSong = "https://www.deezer.com/track/676576";
-
+    const route =useRoute();
+    const params=route.params as ChosenSong;
+    const songChosen =params.chosenSong;
     const { isLoading, data, error } = useQuery({
       queryKey: ['embed'],
       queryFn: () => {
-        return fetch(`https://api.deezer.com/oembed?url=${TestSong}&maxwidth=700&maxheight=300&format=json`)
-        .then((res) => res.json()).then((json) => json.html)
+        console.log("Song id:")
+        console.log(songChosen);
+        return fetch(`https://api.deezer.com/oembed?url=https://www.deezer.com/track/${songChosen}&maxwidth=700&maxheight=300&format=json`)
+        .then((res) => res.json()).then((json) => {
+          console.log(json);
+          console.log(json.html);
+          return json.html
+        })
       }}
     );
 
