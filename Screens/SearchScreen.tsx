@@ -39,7 +39,16 @@ export default function SearchScreen({navigation}){
     for (let i=0;i<3;i++){
       Buttons.push(
         <View key={i} style={styles.button}>
-          <Button title={chordsToClick[index+i]} onPress={()=>{chordClicked=chordsToClick[index+i]; setSearchArray(); setIsEmpty(false); setTheory();}}></Button>
+          <Button title={chordsToClick[index+i]} onPress={()=>{
+            chordClicked=chordsToClick[index+i]; 
+            setChordString(""); 
+            setSearchArray(); 
+            setIsEmpty(false); 
+            setTheory();
+            if(chords.length==0){
+              setIsEmpty(true);
+            }
+          }}></Button>
         </View>
       )
     }
@@ -67,16 +76,18 @@ export default function SearchScreen({navigation}){
     setTheoryString(theory);
   }
 
-  function setChordText(){
+  function setChordText(newChords){
     setChordString("");
-    for (let j=0;j<chords.length;j++){
+    let text = "";
+    for (let j=0;j<newChords.length;j++){
       if(j==0){
-        setChordString(chordString+String(chords[j]));
+        text+=String(newChords[j]);
       }
       else{
-        setChordString(chordString+("-" + String(chords[j])));
+        text+=("-" + String(newChords[j]));
       }
     }
+    setChordString(text);
   }
 
   function DealWithPresets(Preset){
@@ -154,7 +165,7 @@ export default function SearchScreen({navigation}){
             <Text style={styles.chordText}>Current chords: {chordString} </Text>
           :null} 
       </View>
-      {chordClicked!=""?
+      {chordClicked!=""&&!isEmpty?
         <View style={styles.terminologyArea}>
           <Text style={{fontSize:15}}>{theoryString}</Text>
         </View>
@@ -184,11 +195,12 @@ export default function SearchScreen({navigation}){
     if (!found){
       newChords.push(chordClicked);
       chords = newChords;
-      setChordText();
+      setChordText(newChords);
       console.log(newChords);
       return;
     }
     chords = newChords;
+    setChordText(newChords);
     console.log(newChords);
   }
 
