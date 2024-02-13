@@ -96,9 +96,12 @@ export default function ResultsScreen({navigation}) {
             <Button
               title={tracks[i].title_short} 
               onPress={() => {
-                console.log("Track id:")
-                console.log(tracks[i].id)
-                navigation.navigate('Song', {chosenSong:tracks[i].id})
+                console.log("Track id:");
+                console.log(tracks[i].id);
+                console.log(tracks[i].album.title);
+                console.log(tracks[i].track_position);
+                console.log(tracks[i].release_date);
+                navigation.navigate('Song', {chosenSong:tracks[i].id, album: tracks[i].album.title, trackPos:tracks[i].track_position, release: tracks[i].release_date})
               }}>
             </Button>
           </View>
