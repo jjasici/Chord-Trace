@@ -4,128 +4,100 @@ import * as React from 'react';
 import SelectDropdown from 'react-native-select-dropdown';
 import {useState, useEffect} from "react";
 import { HStack } from 'native-base';
-import * as info from '../chords.json';
-import {Audio} from 'expo-av';
-import { useQuery } from '@tanstack/react-query';
-
-var chordClicked ="";
-var chords =[];
-
+import info, { Chord } from '../chords';
+import { SoundContext } from '../utils/SoundContext';
 
 export default function SearchScreen({navigation}){
-  const [index, setIndex] =useState(0);
-  const [currentPreset, setPreset]=useState("None");
+  const [chordMenuIndex, setChordMenuIndex] = useState(0);
   const [presets, setPresets] = useState([]);
-  const [isEmpty, setIsEmpty] =useState(true);
-  const [chordString, setChordString]=useState("");
-  const [theoryString, setTheoryString] = useState(""); 
-  const [chordsToClick, setChordsToClick]=useState([]);
-  const [sound, setSound] = useState();
+  const sounds = React.useContext(SoundContext);
+  const [availableChords, setAvailableChords] = useState<Chord[]>([]);
+  const [chordsSelected, setChordsSelected] = useState<Chord[]>([]);
+  const [currentChordSelected, setCurrentChordSelected] = useState<Chord>();
 
-  async function playSound(chordSound) {
-      const { sound } = await Audio.Sound.createAsync( 
-        require("../piano-chords/Amaj.wav")
-      );
-      setSound(sound);
-    
-      console.log('Playing Sound');
-      await sound.playAsync();
-    
+  interface PlayChordButtonProps {
+      chord: Chord,
   }
 
+  // event handlers
+
+  function onChordSelected(chord: Chord) {
+    console.log('Chord selected', chord);
+    if (chordsSelected.includes(chord)) {
+        setChordsSelected(chordsSelected.filter(c => c !== chord));
+        setCurrentChordSelected(null);
+    } else {
+        playSound(chord.name);
+        setCurrentChordSelected(chord);
+        setChordsSelected([...chordsSelected, chord]);
+    }
+  }
+
+  function onPresetSelected(preset: string){
+    info.presets.forEach((item)=>{
+      if(item.key==preset){
+        setAvailableChords(
+          item.chords.map((chordName) => {
+            return info.chords.find((chord) => chord.name === chordName);
+          })
+        );
+      }
+    });
+  }
+  
+  
+  // Components
+
+  function PlayChordButton(props: PlayChordButtonProps) {
+      return (
+          <View style={styles.button}>
+            <Button title={props.chord.name} onPress={()=>{
+              onChordSelected(props.chord);
+            }}></Button>
+          </View>
+      )
+  }
+
+
+  // helpers
+
+  function generateSelectedChordsString() {
+      return chordsSelected.map(chord => chord.name).join('-');
+  }
+
+  function generateTheoryString(chord: Chord) {
+      let theory = "";
+      theory += info.terminology[chord.type];
+      theory += chord.notes + ". ";
+      if (chord.flat) {
+          theory += "\n\n" + info.terminology.flat;
+      }
+      return theory;
+  }
+
+  function clearSearch(){
+    setChordsSelected([]);
+    setCurrentChordSelected(null);
+  }
+
+  async function playSound(chordName: string) {
+        if (sounds[chordName]) {
+          console.log('Playing sound', chordName);
+          await sounds[chordName].replayAsync();
+        } else {
+            console.log('Sound not loaded');
+            console.log('list of all loaded sounds', Object.keys(sounds));
+        }      
+  }
 
   useEffect(()=>{
-    getChordInfo();
-    return sound
-      ? () => {
-          console.log('Unloading Sound');
-          sound.unloadAsync();
-        }
-      : undefined;
-  },[sound]);
-
-  const getChordInfo = () =>{
-    console.log(info);
     let totalPresets =[];
-    for (let i=0; i<info.presets.length;i++){
-      totalPresets = presets;
-      totalPresets.push(info.presets[i].key);
+      for (let i=0; i<info.presets.length;i++){
+        totalPresets = presets;
+        totalPresets.push(info.presets[i].key);
+      }   
       setPresets(totalPresets);
-    }
-  }
-
-  let Buttons =[];
-  function buttons(){
-    for (let i=0;i<3;i++){
-      Buttons.push(
-        <View key={i} style={styles.button}>
-          <Button title={chordsToClick[index+i]} onPress={()=>{
-            chordClicked=chordsToClick[index+i];
-            playSound(chordsToClick[index+i]);
-            setChordString(""); 
-            setSearchArray(); 
-            setIsEmpty(false); 
-            setTheory();
-            if(chords.length==0){
-              setIsEmpty(true);
-            }
-          }}></Button>
-        </View>
-      )
-    }
-  }
-
-  
-
-  function setTheory(){
-    setTheoryString("");
-    let theory="";
-    let chord;
-    for(let i=0;i<info.chords.length;i++){
-      if(info.chords[i].name==chordClicked){
-        chord = info.chords[i];
-      }
-    }
-    if (chord.type=="minor") {
-      theory+=info.terminology.minor;
-    } 
-    else{
-      theory+=info.terminology.major;
-    }
-    theory+=chord.notes + ". ";
-    if(chord.flat){
-      theory+= "\n\n" + info.terminology.flat;
-    }
-    setTheoryString(theory);
-  }
-
-  function setChordText(newChords){
-    setChordString("");
-    let text = "";
-    for (let j=0;j<newChords.length;j++){
-      if(j==0){
-        text+=String(newChords[j]);
-      }
-      else{
-        text+=("-" + String(newChords[j]));
-      }
-    }
-    setChordString(text);
-  }
-
-  function DealWithPresets(Preset){
-    for(let i=0; i<info.presets.length;i++){
-      if (info.presets[i].key==Preset){
-        let currentChordSelection=[];
-        console.log(currentChordSelection);
-        for (let j=0; j<info.presets[i].chords.length;j++){
-          currentChordSelection.push(info.presets[i].chords[j]);
-        }
-        setChordsToClick(currentChordSelection);
-        console.log(chordsToClick);
-      } 
-    }
-  }
+  }, []);
 
   return (
     <View>
@@ -136,102 +108,64 @@ export default function SearchScreen({navigation}){
           defaultButtonText='Select Preset'
           buttonStyle = {styles.preset}
           onSelect={(selectedItem)=>{ 
-          setPreset(selectedItem); 
-          console.log(currentPreset);
-          let empty =[];
-          setChordsToClick(empty);
-          DealWithPresets(selectedItem);
-          console.log(chordsToClick);
-          //setPresetIndex(selectedItem); 
-          setIndex(0);
-          chords=[];
-          setIsEmpty(true);
-          setChordString("");
-          //console.log(chordIndexes);
-          console.log(chords);
-          console.log(index)}}
+          onPresetSelected(selectedItem);
+          setChordMenuIndex(0);
+          clearSearch();
+        }}
 
       />
       </View>
       <HStack space={3} justifyContent="center" marginTop={10}>
         <View style={styles.left}>
-          {(index==3 && chordsToClick.length>0)? <Button title="Prev" onPress={()=>{setIndex(index-3)}}></Button> :null}
+          {(chordMenuIndex==3 && availableChords.length>0)? <Button title="Prev" onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}></Button> :null}
         </View>
-        {chordsToClick.length>0?
+        {availableChords.length>0?
           <HStack space={3} justifyContent="center">
-            {buttons()}
-            {Buttons}
+            {
+              availableChords.slice(chordMenuIndex, chordMenuIndex+3).map((chord, i) => (
+                <PlayChordButton key={i} chord={chord}/>
+              ))
+            }
           </HStack>
           : null
         }
         <View style={styles.right}>
-          {(index==0 && chordsToClick.length>0)? <Button title="Next" onPress={()=>{setIndex(index+3)}}></Button> :null}
+          {(chordMenuIndex==0 && availableChords.length>0)? <Button title="Next" onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}></Button> :null}
         </View>
       </HStack>
       <View>
         <HStack space={5} justifyContent="center" marginTop={2}>
             <View>
-              {!isEmpty?
+              {!(chordsSelected.length==0)?
                 <Button title= "Clear search" onPress={()=>{ clearSearch();}}></Button>
               :null}
             </View>
           <View>
-              {!isEmpty?
+              {!(chordsSelected.length==0)?
                 <Button title="Submit" onPress={()=>{
-                  console.log(chordString);
-                  navigation.navigate('Results', {chordString:chordString})
+                  // console.log(chordString);
+                  navigation.navigate('Results', {chordString:generateSelectedChordsString()})
                 }}></Button>
               :null}
           </View>
         </HStack>
-          {!isEmpty? 
-            <Text style={styles.chordText}>Current chords: {chordString} </Text>
+          {!(chordsSelected.length==0)? 
+            <Text style={styles.chordText}>Current chords: {generateSelectedChordsString()} </Text>
           :null} 
       </View>
-      {chordClicked!=""&&!isEmpty?
+      {currentChordSelected ?
         <View style={styles.terminologyArea}>
-          <Text style={{fontSize:15}}>{theoryString}</Text>
+          <Text style={{fontSize:15}}>{
+            generateTheoryString(currentChordSelected)
+          }</Text>
         </View>
       :null}
     </View>
   );
-
-  function clearSearch(){
-    setChordString("");
-    chords =[];
-    setIsEmpty(true);
-    chordClicked="";
-    console.log(chords);
-  }
-
-  function setSearchArray(){
-    let newChords=[];
-    let found = false;
-    for (let i=0;i<chords.length;i++){
-      newChords.push(chords[i]);
-      if (chords[i]==chordClicked){
-        console.log("Chord same");
-        newChords.pop();
-        found =true;
-      }
-    }
-    if (!found){
-      newChords.push(chordClicked);
-      chords = newChords;
-      setChordText(newChords);
-      console.log(newChords);
-      return;
-    }
-    chords = newChords;
-    setChordText(newChords);
-    console.log(newChords);
-  }
-  
-
 }
 
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
