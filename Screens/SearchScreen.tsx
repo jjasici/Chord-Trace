@@ -5,7 +5,8 @@ import SelectDropdown from 'react-native-select-dropdown';
 import {useState, useEffect} from "react";
 import { HStack } from 'native-base';
 import * as info from '../chords.json';
-
+import {Audio} from 'expo-av';
+import { useQuery } from '@tanstack/react-query';
 
 var chordClicked ="";
 var chords =[];
@@ -19,10 +20,29 @@ export default function SearchScreen({navigation}){
   const [chordString, setChordString]=useState("");
   const [theoryString, setTheoryString] = useState(""); 
   const [chordsToClick, setChordsToClick]=useState([]);
+  const [sound, setSound] = useState();
+
+  async function playSound(chordSound) {
+      const { sound } = await Audio.Sound.createAsync( 
+        require("../piano-chords/Amaj.wav")
+      );
+      setSound(sound);
+    
+      console.log('Playing Sound');
+      await sound.playAsync();
+    
+  }
+
 
   useEffect(()=>{
     getChordInfo();
-  },[]);
+    return sound
+      ? () => {
+          console.log('Unloading Sound');
+          sound.unloadAsync();
+        }
+      : undefined;
+  },[sound]);
 
   const getChordInfo = () =>{
     console.log(info);
@@ -40,7 +60,8 @@ export default function SearchScreen({navigation}){
       Buttons.push(
         <View key={i} style={styles.button}>
           <Button title={chordsToClick[index+i]} onPress={()=>{
-            chordClicked=chordsToClick[index+i]; 
+            chordClicked=chordsToClick[index+i];
+            playSound(chordsToClick[index+i]);
             setChordString(""); 
             setSearchArray(); 
             setIsEmpty(false); 
@@ -53,6 +74,8 @@ export default function SearchScreen({navigation}){
       )
     }
   }
+
+  
 
   function setTheory(){
     setTheoryString("");
@@ -203,6 +226,7 @@ export default function SearchScreen({navigation}){
     setChordText(newChords);
     console.log(newChords);
   }
+  
 
 }
 
