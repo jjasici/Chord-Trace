@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, Image } from 'react-native';
+import { StyleSheet, Text, View, Button, Image, Pressable } from 'react-native';
 import {useRoute} from "@react-navigation/native";
 import {useState, useEffect} from "react";
 import * as React from 'react';
@@ -92,20 +92,13 @@ export default function ResultsScreen({navigation}) {
     for(let i=0;i<5;i++){
       Results.push(
         <Box key={i} style={styles.Box}>
-          <View style={styles.title}>
-            <Button
-              title={tracks[i].title_short} 
-              onPress={() => {
-                console.log("Track id:");
-                console.log(tracks[i].id);
-                console.log(tracks[i].album.title);
-                console.log(tracks[i].track_position);
-                console.log(tracks[i].release_date);
-                navigation.navigate('Song', {chosenSong:tracks[i].id, album: tracks[i].album.title, trackPos:tracks[i].track_position, release: tracks[i].release_date})
-              }}>
-            </Button>
-          </View>
-          <Text> Artist: {tracks[i].contributors[0].name}</Text>
+          <Pressable
+            onPress={() => {
+              navigation.navigate('Song', {chosenSong:tracks[i].id, album: tracks[i].album.title, trackPos:tracks[i].track_position, release: tracks[i].release_date})
+            }}>
+              <Text style={styles.title}>{tracks[i].title_short}</Text>
+          </Pressable>
+          <Text>By {tracks[i].contributors[0].name}</Text>
           <Image 
             style={styles.img}
             source={{
@@ -120,13 +113,17 @@ export default function ResultsScreen({navigation}) {
   const returnIDs =()=>{
     return <View>
       <Box borderRadius="md">
-      <VStack space="5">
+      <VStack style={{alignItems:'center'}} space="5">
         {offset!=0? 
-          <Button title="Previous Page" onPress={()=>{LoadPreviousIDs();}}></Button>
+          <Pressable style={styles.button} onPress={()=>{LoadPreviousIDs();}}>
+            <Text style={{color:'white'}}>Previous Page</Text>
+          </Pressable>
         : null}
         {getResults()}
         {Results}
-        <Button title="Next Page" onPress={()=>{console.log("Button Clicked");LoadNextIDs();}}></Button>
+        <Pressable style={styles.button} onPress={()=>{LoadNextIDs();}}>
+          <Text style={{color:'white'}}>Next Page</Text>
+        </Pressable>
       </VStack>
       </Box>
     </View>;
@@ -170,11 +167,23 @@ const styles = StyleSheet.create({
     padding:1,
     width:60,
     height: 60,
-    top:-52,
+    top:-40,
     left:275,
     borderRadius: 10
   },
   title:{
-    alignItems:'flex-start',
+    fontWeight: 'bold',
+    fontSize:18,
+    padding:1,
+    marginBottom:3
+  },
+  button:{
+    backgroundColor: 'gray',
+    padding:10,
+    borderRadius: 10,
+    width: 120,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 });
