@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, Button, Pressable } from 'react-native';
 import * as React from 'react';
 import SelectDropdown from 'react-native-select-dropdown';
 import {useState, useEffect} from "react";
@@ -50,10 +50,12 @@ export default function SearchScreen({navigation}){
 
   function PlayChordButton(props: PlayChordButtonProps) {
       return (
-          <View style={styles.button}>
-            <Button title={props.chord.name} onPress={()=>{
+          <View style={styles.chordButton}>
+            <Pressable onPress={()=>{
               onChordSelected(props.chord);
-            }}></Button>
+            }}>
+              <Text style={{fontSize:15}}>{props.chord.name}</Text>
+            </Pressable>
           </View>
       )
   }
@@ -117,7 +119,9 @@ export default function SearchScreen({navigation}){
       </View>
       <HStack space={3} justifyContent="center" marginTop={10}>
         <View style={styles.left}>
-          {(chordMenuIndex==3 && availableChords.length>0)? <Button title="Prev" onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}></Button> :null}
+          {(chordMenuIndex==3 && availableChords.length>0)? <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
+            <Text style={{color:'white'}}>Prev</Text>
+          </Pressable> :null}
         </View>
         {availableChords.length>0?
           <HStack space={3} justifyContent="center">
@@ -130,22 +134,27 @@ export default function SearchScreen({navigation}){
           : null
         }
         <View style={styles.right}>
-          {(chordMenuIndex==0 && availableChords.length>0)? <Button title="Next" onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}></Button> :null}
+          {(chordMenuIndex==0 && availableChords.length>0)? <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
+              <Text style={{color:'white'}}>Next</Text>
+          </Pressable> :null}
         </View>
       </HStack>
       <View>
         <HStack space={5} justifyContent="center" marginTop={2}>
             <View>
               {!(chordsSelected.length==0)?
-                <Button title= "Clear search" onPress={()=>{ clearSearch();}}></Button>
+                <Pressable style={[styles.button, {width:120}]} onPress={()=>{ clearSearch();}}>
+                  <Text style={{color:'white'}}>Clear Search</Text>
+                </Pressable>
               :null}
             </View>
           <View>
               {!(chordsSelected.length==0)?
-                <Button title="Submit" onPress={()=>{
-                  // console.log(chordString);
+                <Pressable style={styles.button} onPress={()=>{
                   navigation.navigate('Results', {chordString:generateSelectedChordsString()})
-                }}></Button>
+                }}>
+                  <Text style={{color:'white'}}>Submit</Text>
+                </Pressable>
               :null}
           </View>
         </HStack>
@@ -160,6 +169,9 @@ export default function SearchScreen({navigation}){
           }</Text>
         </View>
       :null}
+      <Button title="Test Song" onPress={()=>{
+        navigation.navigate('Test')
+      }}></Button>
     </View>
   );
 }
@@ -182,19 +194,30 @@ export const styles = StyleSheet.create({
     backgroundColor: 'lightgray',
     borderRadius: 10
   },
-  button:{
+  chordButton:{
     backgroundColor: 'lightgray',
     justifyContent: 'center',
     alignContent:'center',
     padding:10,
-    borderRadius: 10
+    borderRadius: 10,
+    width: 80,
+    height: 50,
+    alignItems: 'center'
+  },
+  button:{
+    backgroundColor: 'gray',
+    justifyContent: 'center',
+    alignContent:'center',
+    padding:10,
+    borderRadius: 10,
+    width: 80,
+    height: 50,
+    alignItems: 'center'
   },
   right:{
-    marginTop: 10,
     marginRight:-340,
   },
   left:{
-    marginTop:10,
     marginLeft:-340,
   },
   chordText:{
