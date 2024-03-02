@@ -22,4 +22,10 @@ TODO: write a summary of the app
 - [] Styling
 
 
-
+## Image references
+- [] Back: https://icons8.com/icon/MqVUKnfYkSpO/back
+- [] Next: https://icons8.com/icon/5xG5QSwiae0d/forward
+- [] Play: https://icons8.com/icon/25603/circled-play
+- [] Pause: https://icons8.com/icon/24890/pause-button
+- [] Replay: https://icons8.com/icon/411/skip-to-start
+- [] Skip: https://icons8.com/icon/409/end
