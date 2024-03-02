@@ -7,6 +7,7 @@ import * as React from 'react';
 import Home from "./Screens/SearchScreen";
 import Results from "./Screens/ResultsScreen";
 import Song from "./Screens/SongScreen";
+import Test from "./Screens/TestSongPlay";
 import { NativeBaseProvider } from 'native-base';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
@@ -18,7 +19,7 @@ function App() {
  
   async function loadAllSounds(): Promise<SoundBoard> {
     return {
-      "Amaj": await Audio.Sound.createAsync(require("./piano-chords/Abmaj.wav")).then((sound) => {return sound.sound}),
+      "Amaj": await Audio.Sound.createAsync(require("./piano-chords/Amaj.wav")).then((sound) => {return sound.sound}),
       "Amin": await Audio.Sound.createAsync(require("./piano-chords/Amin.wav")).then((sound) => {return sound.sound}),
       "Abmaj": await Audio.Sound.createAsync(require("./piano-chords/Abmaj.wav")).then((sound) => {return sound.sound}),
       "Abmin": await Audio.Sound.createAsync(require("./piano-chords/Abmin.wav")).then((sound) => {return sound.sound}),
@@ -71,6 +72,7 @@ function App() {
             <Stack.Screen name="Search" component={Home}/>
             <Stack.Screen name="Results" component={Results}/>
             <Stack.Screen name="Song" component={Song}/>
+            <Stack.Screen name="Test" component={Test}/>
           </Stack.Navigator>
           }
 
