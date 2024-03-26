@@ -16,9 +16,8 @@ export default function ResultsScreen({navigation}) {
   const [error, setError]=useState();
   const [response,setResponse]=useState();
   const [isLoading, setLoading]=useState(true);
-  const [tracks, setTracks]=useState([]);
+  const [tracks, setTracks]=useState();
   const [offset, setOffset]=useState(0);
-  //const [moreTracks, setMoreTracks]=useState(true);
   const [tracksBool, setTrackBool ]=useState(true);
   const [reload, setReload]=useState(true);
   
@@ -30,10 +29,10 @@ export default function ResultsScreen({navigation}) {
   const getResponse=async()=>{
     if (reload){
       setReload(false);
-      setTracks([]);
+      setTracks(null);
       setLoading(true);
       Loading();
-      await fetch("http://audio-analysis.eecs.qmul.ac.uk/function/search/deezer/5/" + String(offset) +"?chords="+chordString)
+      await fetch("https://audio-analysis.eecs.qmul.ac.uk/function/search/audiocommons/10/" + String(offset) +"?namespaces=jamendo-tracks&chords="+chordString)
     .then(res=>res.json())
     .then(
       (result)=>{
@@ -45,33 +44,34 @@ export default function ResultsScreen({navigation}) {
       setError(error);
     });
     }
-    if (response!=null&&tracksBool==true){
-      for (let i=0;i<response.length;i++){
-        console.log("Start getting tracks: "+response[i].id);
-        getTracks(response[i].id);
+    if (response&&tracksBool){
+      let idsString="";
+      for(let i=0;i<response.length;i++){
+        if(i<response.length-1){
+          idsString+=response[i].id.split(":")[1] + "+";
+        }
+        else{
+          idsString+=response[i].id.split(":")[1];
+        }
       }
-      console.log("After loop length is: " + tracks.length);
+      console.log(idsString);
+      getTracks(idsString);
       setTrackBool(false);
     }
   }
 
-  const getTracks=async(id)=>{
-    await fetch("https://api.deezer.com/track/"+id)
+  const getTracks=async(ids)=>{
+    await fetch("https://api.jamendo.com/v3.0/tracks/?client_id=5ee07b07&format=jsonpretty&id="+ids)
     .then(res=>res.json())
     .then(
       (result)=>{
-      let Tracks = tracks;
-      Tracks.push(result);
-      setTracks(Tracks);
-      console.log(tracks.length);
+        setTracks(result);
+        setLoading(false);
     },
     (error)=>{
       setLoading(false);
       setError(error);
     });
-    if (tracks.length==5){
-      setLoading(false);
-    }
   }
 
 
@@ -82,27 +82,33 @@ export default function ResultsScreen({navigation}) {
     if (error){
       return <Text>{error}</Text>;
     }
-    if (response!=null&&tracks.length==5){
+    if (response!=null&&tracks!=null){
       return returnIDs();
     }
   };
 
   let Results=[];
   function getResults(){
-    for(let i=0;i<5;i++){
+    for(let i=0;i<Math.min(5,tracks.headers.results_count);i++){
       Results.push(
         <Box key={i} style={styles.Box}>
           <Pressable
             onPress={() => {
-              navigation.navigate('Song', {chosenSong:tracks[i].id, album: tracks[i].album.title, trackPos:tracks[i].track_position, release: tracks[i].release_date})
+              let objArray;
+              for(let j=0;j<response.length;j++){
+                if(response[j].id.split(":")[1]==tracks.results[i].id){
+                  objArray = response[j].chords.chordSequence;
+                }
+              }
+              navigation.navigate('Song', {chosenSong:tracks.results[i].id, chordArray: objArray})
             }}>
-              <Text style={styles.title}>{tracks[i].title_short}</Text>
+              <Text style={styles.title}>{tracks.results[i].name}</Text>
           </Pressable>
-          <Text>By {tracks[i].contributors[0].name}</Text>
+          <Text>By {tracks.results[i].artist_name}</Text>
           <Image 
             style={styles.img}
             source={{
-              uri:tracks[i].album.cover
+              uri:tracks.results[i].album_image
             }}
           />
         </Box>
@@ -121,21 +127,23 @@ export default function ResultsScreen({navigation}) {
         : null}
         {getResults()}
         {Results}
-        <Pressable style={styles.button} onPress={()=>{LoadNextIDs();}}>
-          <Text style={{color:'white'}}>Next Page</Text>
-        </Pressable>
+        {tracks.headers.results_count>=5?
+          <Pressable style={styles.button} onPress={()=>{LoadNextIDs();}}>
+            <Text style={{color:'white'}}>Next Page</Text>
+          </Pressable>
+        :null}
       </VStack>
       </Box>
     </View>;
   }
 
   function LoadNextIDs(){
-    setOffset(offset+5);
+    setOffset(offset+10);
     setReload(true);
   }
 
   function LoadPreviousIDs(){
-    setOffset(offset-5);
+    setOffset(offset-10);
     setReload(true);
   }
 
@@ -173,7 +181,7 @@ const styles = StyleSheet.create({
   },
   title:{
     fontWeight: 'bold',
-    fontSize:18,
+    fontSize:16,
     padding:1,
     marginBottom:3
   },
