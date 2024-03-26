@@ -14,6 +14,7 @@ export default function SearchScreen({navigation}){
   const [availableChords, setAvailableChords] = useState<Chord[]>([]);
   const [chordsSelected, setChordsSelected] = useState<Chord[]>([]);
   const [currentChordSelected, setCurrentChordSelected] = useState<Chord>();
+  const [presetSelected, setPresetSelected] = useState();
 
   interface PlayChordButtonProps {
       chord: Chord,
@@ -69,12 +70,26 @@ export default function SearchScreen({navigation}){
 
   function generateTheoryString(chord: Chord) {
       let theory = "";
+      if(presetSelected){
+        theory+="\n";
+      }
       theory += info.terminology[chord.type];
       theory += chord.notes + ". ";
       if (chord.flat) {
           theory += "\n\n" + info.terminology.flat;
       }
       return theory;
+  }
+
+  function generatePresetString(preset){
+    console.log("preset string being generated");
+    let theory ="";
+    info.presets.forEach((item)=>{
+      if(item.key==preset){
+        theory+=info.terminology[item.type];
+      }
+    });
+    return theory;
   }
 
   function clearSearch(){
@@ -111,20 +126,21 @@ export default function SearchScreen({navigation}){
           buttonStyle = {styles.preset}
           onSelect={(selectedItem)=>{ 
           onPresetSelected(selectedItem);
+          setPresetSelected(selectedItem);
           setChordMenuIndex(0);
           clearSearch();
         }}
 
       />
       </View>
-      <HStack space={3} justifyContent="center" marginTop={10}>
+      <HStack space={1.5} justifyContent="center" marginTop={10}>
         <View style={styles.left}>
-          {(chordMenuIndex==3 && availableChords.length>0)? <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
+          {((chordMenuIndex==3 && availableChords.length>0)||(availableChords.length==24&&chordMenuIndex>=3))? <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
             <Text style={{color:'white'}}>Prev</Text>
           </Pressable> :null}
         </View>
         {availableChords.length>0?
-          <HStack space={3} justifyContent="center">
+          <HStack space={1.5} justifyContent="center">
             {
               availableChords.slice(chordMenuIndex, chordMenuIndex+3).map((chord, i) => (
                 <PlayChordButton key={i} chord={chord}/>
@@ -134,7 +150,7 @@ export default function SearchScreen({navigation}){
           : null
         }
         <View style={styles.right}>
-          {(chordMenuIndex==0 && availableChords.length>0)? <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
+          {((chordMenuIndex==0 && availableChords.length>0)||(availableChords.length==24 && chordMenuIndex<21))? <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
               <Text style={{color:'white'}}>Next</Text>
           </Pressable> :null}
         </View>
@@ -162,16 +178,20 @@ export default function SearchScreen({navigation}){
             <Text style={styles.chordText}>Current chords: {generateSelectedChordsString()} </Text>
           :null} 
       </View>
-      {currentChordSelected ?
+      {currentChordSelected || presetSelected ?
         <View style={styles.terminologyArea}>
-          <Text style={{fontSize:15}}>{
-            generateTheoryString(currentChordSelected)
-          }</Text>
+          {presetSelected?
+            <Text style={{fontSize:15}}>
+              {generatePresetString(presetSelected)}
+            </Text>
+          :null}
+          {currentChordSelected?
+            <Text style={{fontSize:15}}>
+              {generateTheoryString(currentChordSelected)}
+              </Text>
+          :null}
         </View>
       :null}
-      <Button title="Test Song" onPress={()=>{
-        navigation.navigate('Test')
-      }}></Button>
     </View>
   );
 }
@@ -200,7 +220,7 @@ export const styles = StyleSheet.create({
     alignContent:'center',
     padding:10,
     borderRadius: 10,
-    width: 80,
+    width: 70,
     height: 50,
     alignItems: 'center'
   },
@@ -210,7 +230,7 @@ export const styles = StyleSheet.create({
     alignContent:'center',
     padding:10,
     borderRadius: 10,
-    width: 80,
+    width: 65,
     height: 50,
     alignItems: 'center'
   },
