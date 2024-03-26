@@ -7,7 +7,6 @@ import * as React from 'react';
 import Home from "./Screens/SearchScreen";
 import Results from "./Screens/ResultsScreen";
 import Song from "./Screens/SongScreen";
-import Test from "./Screens/TestSongPlay";
 import { NativeBaseProvider } from 'native-base';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
@@ -69,10 +68,9 @@ function App() {
             Object.keys(sounds).length == 0 ?
             <Text>Loading app..</Text>
             : <Stack.Navigator>
-            <Stack.Screen name="Search" component={Home}/>
-            <Stack.Screen name="Results" component={Results}/>
-            <Stack.Screen name="Song" component={Song}/>
-            <Stack.Screen name="Test" component={Test}/>
+            <Stack.Screen options={{gestureEnabled: false}} name="Search" component={Home}/>
+            <Stack.Screen options={{gestureEnabled: false}} name="Results" component={Results}/>
+            <Stack.Screen options={{gestureEnabled: false}} name="Song" component={Song}/>
           </Stack.Navigator>
           }
 
