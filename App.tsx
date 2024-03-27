@@ -66,8 +66,20 @@ function App() {
         <SoundContext.Provider value={sounds}>
           {
             Object.keys(sounds).length == 0 ?
-            <Text>Loading app..</Text>
-            : <Stack.Navigator>
+            <View style={styles.container}>
+              <Text>Loading app..</Text>
+            </View>
+            : <Stack.Navigator 
+              screenOptions={{
+                headerStyle:{
+                  backgroundColor: 'rgb(18, 18, 18)'
+                },
+                headerTintColor: 'white',
+                headerTitleStyle:{
+                  fontSize: 20,
+                }
+              }}
+            >
             <Stack.Screen options={{gestureEnabled: false}} name="Search" component={Home}/>
             <Stack.Screen options={{gestureEnabled: false}} name="Results" component={Results}/>
             <Stack.Screen options={{gestureEnabled: false}} name="Song" component={Song}/>
@@ -83,3 +95,11 @@ function App() {
 
 export default App;
 
+const styles = StyleSheet.create({
+  container:{
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+});
