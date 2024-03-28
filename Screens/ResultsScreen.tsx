@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Button, Image, Pressable } from 'react-native';
 import {useRoute} from "@react-navigation/native";
 import {useState, useEffect} from "react";
 import * as React from 'react';
-import {Box, VStack} from 'native-base';
+import {Box, HStack, VStack} from 'native-base';
 
 type ChordString = {
   chordString: string;
@@ -92,25 +92,34 @@ export default function ResultsScreen({navigation}) {
     for(let i=0;i<Math.min(5,tracks.headers.results_count);i++){
       Results.push(
         <Box key={i} style={styles.Box}>
-          <Pressable
+          <HStack space={1.5}>
+            <Image 
+              style={styles.img}
+              source={{
+                uri:tracks.results[i].album_image
+              }}
+            />
+            <View style={styles.songInfo}>
+              <Text style={styles.title}>{tracks.results[i].name}</Text>
+              <Text>By {tracks.results[i].artist_name}</Text>
+            </View>
+            <Pressable
             onPress={() => {
               let objArray;
               for(let j=0;j<response.length;j++){
                 if(response[j].id.split(":")[1]==tracks.results[i].id){
+                  console.log(tracks.results[i].id)
                   objArray = response[j].chords.chordSequence;
                 }
               }
               navigation.navigate('Song', {chosenSong:tracks.results[i].id, chordArray: objArray})
-            }}>
-              <Text style={styles.title}>{tracks.results[i].name}</Text>
-          </Pressable>
-          <Text>By {tracks.results[i].artist_name}</Text>
-          <Image 
-            style={styles.img}
-            source={{
-              uri:tracks.results[i].album_image
-            }}
-          />
+              }}>
+                <Image
+                  style={styles.buttonImg}
+                  source={require('../Img/Forward.png')}
+                />
+            </Pressable>
+          </HStack>
         </Box>
       )
     }
@@ -119,17 +128,21 @@ export default function ResultsScreen({navigation}) {
   const returnIDs =()=>{
     return <View>
       <Box borderRadius="md">
-      <VStack style={{alignItems:'center'}} space="5">
+      <VStack style={{alignItems:'center'}} space="1">
         {offset!=0? 
-          <Pressable style={styles.button} onPress={()=>{LoadPreviousIDs();}}>
-            <Text style={{color:'white'}}>Previous Page</Text>
+          <Pressable onPress={()=>{LoadPreviousIDs();}}>
+            <Image style={styles.button} source={require('../Img/Up.png')}/>
           </Pressable>
         : null}
-        {getResults()}
-        {Results}
+        <View style={styles.resultsArea}> 
+          <VStack space="5">
+            {getResults()}
+            {Results}
+          </VStack>
+        </View>
         {tracks.headers.results_count>=5?
-          <Pressable style={styles.button} onPress={()=>{LoadNextIDs();}}>
-            <Text style={{color:'white'}}>Next Page</Text>
+          <Pressable onPress={()=>{LoadNextIDs();}}>
+            <Image style={styles.button} source={require('../Img/Down.png')}/>
           </Pressable>
         :null}
       </VStack>
@@ -165,7 +178,7 @@ const styles = StyleSheet.create({
   Box:{
     backgroundColor: 'lightgray',
     padding:5,
-    height:75,
+    height:70,
     width: 350,
     justifyContent:'flex-start',
     alignItems:'flex-start',
@@ -175,8 +188,6 @@ const styles = StyleSheet.create({
     padding:1,
     width:60,
     height: 60,
-    top:-40,
-    left:275,
     borderRadius: 10
   },
   title:{
@@ -186,12 +197,22 @@ const styles = StyleSheet.create({
     marginBottom:3
   },
   button:{
-    backgroundColor: 'gray',
+    width:50,
+    height: 50,
+  },
+  buttonImg:{
+    padding:1,
+    width:50,
+    height: 50,
+    marginTop:5
+  }, 
+  songInfo:{
+    width:225
+  }, 
+  resultsArea:{
+    backgroundColor:'rgb(18, 18, 18)',
+    alignItems:'center',
     padding:10,
-    borderRadius: 10,
-    width: 120,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center'
+    borderRadius: 10
   }
 });
