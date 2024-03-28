@@ -73,8 +73,15 @@ export default function SongScreen({navigation}){
         .then(res=>res.json())
         .then(
             (result)=>{
+                if(result.headers.results_count==0){
+                    console.log("Song not found");
+                    setLoading(false);
+                    return;
+                }
                 if (!result.results[0].audiodownload_allowed){
                     console.log("Not allowed to download audio");
+                    getTotalChords();
+                    setLoading(false);
                     return;
                 }
                 console.log("chord array found: " + chordArray);
@@ -118,7 +125,6 @@ export default function SongScreen({navigation}){
                     console.log(song);
                     setSongLength(song.durationMillis);
                     setLoading(false);
-                    //sound.current.setOnAudioSampleReceived((audio)=>console.log("Object ", audio));
                 }
             }
             catch (error){
@@ -242,97 +248,105 @@ export default function SongScreen({navigation}){
 
 
     const player=()=>{
-        return <View>
+        return <View style={styles.container}>
             <View>
                 <StatusBar style="auto"/>
-                <View style={styles.container}>
-                    <View style={styles.titleBox}>
-                        <Text style={styles.title}>{data.results[0].name}</Text>
-                        <Text>By {data.results[0].artist_name} </Text>
+                <View>
+                    <View style={styles.songInfoArea}>
+                        <View style={styles.titleBox}>
+                            <Text style={styles.title}>{data.results[0].name} By {data.results[0].artist_name}</Text>
+                        </View>
+                        <HStack space={.5}>
+                            <View>
+                            <View style={styles.info}>
+                                <Text style={styles.infoText}>{data.results[0].name} was release in {data.results[0].releasedate} by {data.results[0].artist_name}. This is track number {data.results[0].position} on the album {data.results[0].album_name}.</Text>
+                            </View>
+                            </View>
+                            <View>
+                            <Image
+                                style={styles.albImg}
+                                source={{
+                                uri:data.results[0].album_image
+                                }}
+                            />
+                            </View>
+                        </HStack>
                     </View>
-                    <HStack space={.5}>
-                        <View>
-                          <View style={styles.info}>
-                              <Text style={styles.songInfoTitle}>Song Information:</Text>
-                          </View>
-                          <View style={styles.info}>
-                              <Text style={styles.infoText}>{data.results[0].name} was release in {data.results[0].releasedate} by {data.results[0].artist_name}. This is track number {data.results[0].position} on the album {data.results[0].album_name}.</Text>
-                          </View>
-                        </View>
-                        <View>
-                          <Image
-                              style={styles.albImg}
-                              source={{
-                              uri:data.results[0].album_image
-                              }}
-                          />
-                        </View>
-                    </HStack>
                     <Text style={styles.totalChordsTitle}>Total Chords:</Text>
                     <HStack space={1.5} marginTop={3} justifyContent="center">
                         {chordMenuIndex!=0?
-                            <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
-                                <Text>Prev</Text>
+                            <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
+                                <Image style={styles.buttonImg} source={require('../Img/Back.png')}/>
                             </Pressable>
-                        :null}
+                        :<View style={{width:50}}/>}
                         {totalChords?
                             <HStack space={1.5} justifyContent="center">
                                 {
                                     totalChords.slice(chordMenuIndex, chordMenuIndex+3).map((chord, i)=>(
                                         <View style={styles.chordArea} key={i}>
-                                            <Text>{chord}</Text>
+                                            <Text style={{color:'white'}}>{chord}</Text>
                                         </View>
                                     ))
                                 }
                             </HStack>
                         :null}
                         {(totalChords.length-chordMenuIndex)>3?
-                            <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
-                                <Text>Next</Text>
+                            <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
+                                <Image style={styles.buttonImg} source={require('../Img/Forward.png')}/>
                             </Pressable>
-                        :null}
+                        :<View style={{width:50}}/>}
                     </HStack>
-                    <HStack style={{alignItems: 'center'}} space={1.5} marginTop={3}>
-                        <Text>Chord Playing: </Text>
-                        {currentChord!=null?
-                        <View style={styles.chordArea}>
-                            <Text>{currentChord}</Text>
-                        </View>
-                        :
-                        <View style={styles.chordArea}>
-                            <Text>None</Text>
-                        </View>}
-                    </HStack>
+                    <View style={styles.theoryArea}>
+                        <HStack style={{alignItems: 'center'}} space={1.5} marginTop={10}>
+                            {currentChord!=null?
+                            <View>
+                                <Text style={{fontWeight:'bold'}}>Chord Playing: </Text>
+                                <View style={styles.chordArea}>
+                                    <Text style={{color:'white'}}>{currentChord}</Text>
+                                </View>
+                            </View>
+                            :
+                            <View>
+                                <HStack style={{alignItems: 'center'}} space={1.5}>
+                                    <Text style={{fontWeight:'bold'}}>Chord Playing: </Text>
+                                    <View style={styles.chordArea}>
+                                        <Text style={{color:'white'}}>None</Text>
+                                    </View>
+                                </HStack>
+                            </View>
+                            }
+                        </HStack>
+                    </View>
                 </View>
             </View>
             <View style={styles.PlayerContainer}>
-            <Slider style={styles.selfUpdatingSlider} width={325} value={songPos} minValue={0} maxValue={songLength} >
-                <Slider.Track >
-                    <Slider.FilledTrack bg='grey' />
-                </Slider.Track >
-            </Slider>
-            <View style={styles.wave}>
-                {getWaves()}
-                {res}
-            </View>
+                <Slider style={styles.selfUpdatingSlider} width={325} value={songPos} minValue={0} maxValue={songLength} >
+                    <Slider.Track >
+                        <Slider.FilledTrack bg='white' />
+                    </Slider.Track >
+                </Slider>
+                <View style={styles.wave}>
+                    {getWaves()}
+                    {res}
+                </View>
                 <Slider style={styles.draggingSlider} width={325} defaultValue={0} minValue={0} maxValue={songLength} onChangeEnd={pos=>{
                     changeTrackPosition(pos);
                 }}>
                     <Slider.Track bg="transparent">
-                        <Slider.FilledTrack bg='grey'/>
+                        <Slider.FilledTrack bg='rgb(18,18,18)'/>
                     </Slider.Track >
                     <Slider.Thumb bg="transparent" />
                 </Slider>
-                <HStack style={styles.player} space={3} justifyContent="center" margin={5}>
+                <HStack space={3} justifyContent="center" margin={5} style={{marginBottom:-3}}>
                     <Pressable style={styles.imgArea} onPress={()=>{restartSong()}}>
-                        <Image style={styles.skipReplayImg} source={require('../Img/Replay.png')}/>
+                        <Image style={styles.skipReplayImg} source={require('../Img/ReplayWhite.png')}/>
                     </Pressable>
                     <Pressable  onPress={()=>{playPauseSong();}}>
-                        {!status? <Image style={styles.img} source={require('../Img/Play.png')}/>
-                        : <Image style={styles.img} source={require('../Img/Pause.png')}/>}
+                        {!status? <Image style={styles.img} source={require('../Img/PlayWhite.png')}/>
+                        : <Image style={styles.img} source={require('../Img/PauseWhite.png')}/>}
                     </Pressable>
                     <Pressable style={styles.imgArea} onPress={()=>{skipSong()}}>
-                        <Image style={styles.skipReplayImg} source={require('../Img/Skip.png')}/>
+                        <Image style={styles.skipReplayImg} source={require('../Img/SkipWhite.png')}/>
                     </Pressable>
                 </HStack>
             </View>
@@ -349,6 +363,9 @@ export default function SongScreen({navigation}){
         if (sound!=null&&data!=null){
             return player();
         }
+        if(!isLoading&&!error&&!data){
+            return <Text>Song cannot be found</Text>
+        }
     };
 
     return (
@@ -363,9 +380,13 @@ export default function SongScreen({navigation}){
 const styles = StyleSheet.create({
     PlayerContainer: {
         flex: 1,
-        backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'flex-end',
+        borderRadius: 10,
+        backgroundColor: 'rgb(18, 18, 18)',
+        padding: 17,
+        marginTop:45,
+        margin: 10
     },
     wave:{
         flexDirection: 'row',
@@ -377,12 +398,14 @@ const styles = StyleSheet.create({
     waveLine:{
         flex:1,
         width: 0,
-        backgroundColor: 'grey',
+        backgroundColor: 'white',
     },
     img:{
         padding:1,
-        width:50,
-        height: 50,
+        width:40,
+        height: 40,
+        marginLeft:10,
+        marginRight:10
     },
     skipReplayImg:{
         padding:1,
@@ -393,12 +416,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignContent: 'center',
         alignItems: 'center',
-    },
-    player:{
-        borderRadius: 10,
-        backgroundColor: 'lightgray',
-        padding: 10,
-        width: 350
     },
     selfUpdatingSlider:{
         marginBottom:-37
@@ -413,35 +430,33 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     container: {
-      width: '100%',
-      backgroundColor: '#fff',
-      alignItems: 'center',
-      justifyContent: 'center',
+        flex: 1,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     titleBox:{
-      backgroundColor: 'lightgray',
       padding:5,
       justifyContent:'flex-start',
       alignItems:'flex-start',
-      borderRadius: 10,
-      width:365,
+      width:340,
       margin: 5
     },
     title:{
-      fontSize: 20,
-      fontWeight: 'bold'
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: 'white'
     },
     info:{
-      backgroundColor: 'lightgray',
       padding:5,
       justifyContent:'flex-start',
       alignItems:'flex-start',
-      borderRadius: 10,
       margin: 5,
       width:175,
     },
     infoText:{
-      fontSize:15
+      fontSize:15,
+      color: 'white'
     },
     songInfoTitle:{
       fontSize:18,
@@ -449,23 +464,13 @@ const styles = StyleSheet.create({
     },
     albImg:{
       padding:1,
-      width:175,
-      height:175,
+      width:160,
+      height:160,
       borderRadius: 10,
       margin: 5,
     },
-    button:{
-        backgroundColor: 'gray',
-        justifyContent: 'center',
-        alignContent:'center',
-        padding:10,
-        borderRadius: 10,
-        width: 65,
-        height: 50,
-        alignItems: 'center'
-    },
     chordArea:{
-        backgroundColor: 'lightgray',
+        backgroundColor: 'gray',
         justifyContent: 'center',
         alignContent:'center',
         padding:10,
@@ -479,6 +484,25 @@ const styles = StyleSheet.create({
         alignItems:'flex-start',
         alignContent:'flex-start',
         marginTop:5,
+        marginLeft:20,
+        fontWeight:'bold'
+    },
+    buttonImg:{
+        padding:1,
+        width:50,
+        height: 50,
+    },
+    songInfoArea:{
+        backgroundColor: 'rgb(18, 18, 18)',
+        borderRadius:10,
+        margin: 10,
+        padding: 2
+    },
+    theoryArea:{
+        justifyContent:'flex-start',
+        alignItems:'flex-start',
+        alignContent:'flex-start',
+        marginLeft:20
     }
   });
   
