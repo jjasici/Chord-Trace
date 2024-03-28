@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
 import * as React from 'react';
 import SelectDropdown from 'react-native-select-dropdown';
 import {useState, useEffect} from "react";
@@ -51,13 +51,13 @@ export default function SearchScreen({navigation}){
 
   function PlayChordButton(props: PlayChordButtonProps) {
       return (
-          <View style={styles.chordButton}>
-            <Pressable onPress={()=>{
-              onChordSelected(props.chord);
-            }}>
-              <Text style={{fontSize:15}}>{props.chord.name}</Text>
-            </Pressable>
-          </View>
+          <Pressable onPress={()=>{
+            onChordSelected(props.chord);
+          }}>
+            <View style={styles.chordButton}>
+              <Text style={{color:'white', fontSize:15}}>{props.chord.name}</Text>
+            </View>
+          </Pressable>
       )
   }
 
@@ -117,81 +117,85 @@ export default function SearchScreen({navigation}){
   }, []);
 
   return (
-    <View>
-      <StatusBar style="auto" />
-      <View style={styles.presetContainer}>
-        <SelectDropdown 
-          data={presets}
-          defaultButtonText='Select Preset'
-          buttonStyle = {styles.preset}
-          onSelect={(selectedItem)=>{ 
-          onPresetSelected(selectedItem);
-          setPresetSelected(selectedItem);
-          setChordMenuIndex(0);
-          clearSearch();
-        }}
-
-      />
-      </View>
-      <HStack space={1.5} justifyContent="center" marginTop={10}>
-        <View style={styles.left}>
-          {((chordMenuIndex==3 && availableChords.length>0)||(availableChords.length==24&&chordMenuIndex>=3))? <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
-            <Text style={{color:'white'}}>Prev</Text>
-          </Pressable> :null}
-        </View>
-        {availableChords.length>0?
-          <HStack space={1.5} justifyContent="center">
-            {
-              availableChords.slice(chordMenuIndex, chordMenuIndex+3).map((chord, i) => (
-                <PlayChordButton key={i} chord={chord}/>
-              ))
-            }
-          </HStack>
-          : null
-        }
-        <View style={styles.right}>
-          {((chordMenuIndex==0 && availableChords.length>0)||(availableChords.length==24 && chordMenuIndex<21))? <Pressable style={styles.button} onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
-              <Text style={{color:'white'}}>Next</Text>
-          </Pressable> :null}
-        </View>
-      </HStack>
+    <View style={styles.container}>
       <View>
-        <HStack space={5} justifyContent="center" marginTop={2}>
-            <View>
-              {!(chordsSelected.length==0)?
-                <Pressable style={[styles.button, {width:120}]} onPress={()=>{ clearSearch();}}>
-                  <Text style={{color:'white'}}>Clear Search</Text>
-                </Pressable>
-              :null}
-            </View>
-          <View>
-              {!(chordsSelected.length==0)?
-                <Pressable style={styles.button} onPress={()=>{
-                  navigation.navigate('Results', {chordString:generateSelectedChordsString()})
-                }}>
-                  <Text style={{color:'white'}}>Submit</Text>
-                </Pressable>
-              :null}
-          </View>
-        </HStack>
-          {!(chordsSelected.length==0)? 
-            <Text style={styles.chordText}>Current chords: {generateSelectedChordsString()} </Text>
-          :null} 
-      </View>
-      {currentChordSelected || presetSelected ?
-        <View style={styles.terminologyArea}>
-          {presetSelected?
-            <Text style={{fontSize:15}}>
-              {generatePresetString(presetSelected)}
-            </Text>
-          :null}
-          {currentChordSelected?
-            <Text style={{fontSize:15}}>
-              {generateTheoryString(currentChordSelected)}
-              </Text>
-          :null}
+        <StatusBar style="auto" />
+        <View style={styles.presetContainer}>
+          <SelectDropdown 
+            data={presets}
+            defaultButtonText='Select Preset'
+            buttonStyle = {styles.preset}
+            onSelect={(selectedItem)=>{ 
+            onPresetSelected(selectedItem);
+            setPresetSelected(selectedItem);
+            setChordMenuIndex(0);
+            clearSearch();
+          }}
+
+        />
         </View>
-      :null}
+        <View>
+          <HStack space={2} justifyContent="center" marginTop={0}>
+            <View style={styles.left}>
+              {((chordMenuIndex==3 && availableChords.length>0)||(availableChords.length==24&&chordMenuIndex>=3))? <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
+                <Image style={styles.img} source={require('../Img/Back.png')} />
+              </Pressable> :<View style={{width:50}}/>}
+            </View>
+            {availableChords.length>0?
+              <HStack space={2} justifyContent="center">
+                {
+                  availableChords.slice(chordMenuIndex, chordMenuIndex+3).map((chord, i) => (
+                    <PlayChordButton key={i} chord={chord}/>
+                  ))
+                }
+              </HStack>
+              : null
+            }
+            <View style={styles.right}>
+              {((chordMenuIndex==0 && availableChords.length>0)||(availableChords.length==24 && chordMenuIndex<21))? <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
+                  <Image style={styles.img} source={require('../Img/Forward.png')} />
+              </Pressable> :<View style={{width:50}}/>}
+            </View>
+          </HStack>
+        </View>
+        <View>
+          <HStack space={5} justifyContent="center" marginTop={2}>
+              <View>
+                {!(chordsSelected.length==0)?
+                  <Pressable style={[styles.button, {width:120}]} onPress={()=>{ clearSearch();}}>
+                    <Text style={{color:'white'}}>Clear Search</Text>
+                  </Pressable>
+                :null}
+              </View>
+            <View>
+                {!(chordsSelected.length==0)?
+                  <Pressable style={styles.button} onPress={()=>{
+                    navigation.navigate('Results', {chordString:generateSelectedChordsString()})
+                  }}>
+                    <Text style={{color:'white'}}>Submit</Text>
+                  </Pressable>
+                :null}
+            </View>
+          </HStack>
+            {!(chordsSelected.length==0)? 
+              <Text style={styles.chordText}>Current chords: {generateSelectedChordsString()} </Text>
+            :null} 
+        </View>
+        {currentChordSelected || presetSelected ?
+          <View style={styles.terminologyArea}>
+            {presetSelected?
+              <Text style={{fontSize:15, color: 'white'}}>
+                {generatePresetString(presetSelected)}
+              </Text>
+            :null}
+            {currentChordSelected?
+              <Text style={{fontSize:15, color: 'white'}}>
+                {generateTheoryString(currentChordSelected)}
+                </Text>
+            :null}
+          </View>
+        :null}
+      </View>
     </View>
   );
 }
@@ -199,30 +203,32 @@ export default function SearchScreen({navigation}){
 
 export const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 375,
+    height: 700
   },
   presetContainer:{
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
     paddingLeft: 20,
-    paddingTop: 20,
+    paddingTop: 10,
+    marginTop: 9,
+    paddingBottom: 10,
+    borderRadius:10,
   },
   preset:{
-    backgroundColor: 'lightgray',
+    backgroundColor: 'gray',
     borderRadius: 10
   },
   chordButton:{
-    backgroundColor: 'lightgray',
+    backgroundColor: 'rgb(18, 18, 18)',
     justifyContent: 'center',
     alignContent:'center',
     padding:10,
     borderRadius: 10,
-    width: 70,
+    width: 80,
     height: 50,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   button:{
     backgroundColor: 'gray',
@@ -232,23 +238,31 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     width: 65,
     height: 50,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   right:{
     marginRight:-340,
+
   },
   left:{
     marginLeft:-340,
   },
   chordText:{
+    marginTop:10,
     padding:10,
     marginLeft:10,
-    fontSize:15
+    fontSize:15,
+    fontWeight: 'bold'
   },
   terminologyArea:{
     padding:20,
-    backgroundColor: 'lightgray',
+    backgroundColor: 'rgb(18, 18, 18)',
     borderRadius:10,
     margin: 10,
   },
+  img:{
+    padding:1,
+    width:50,
+    height: 50,
+  }
 });
