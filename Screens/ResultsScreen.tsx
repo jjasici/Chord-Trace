@@ -4,56 +4,39 @@ import {useRoute} from "@react-navigation/native";
 import {useState, useEffect} from "react";
 import * as React from 'react';
 import {Box, HStack, VStack} from 'native-base';
-
-type ChordString = {
-  chordString: string;
-}
+import * as types from '../lib/types';
 
 export default function ResultsScreen({navigation}) {
   const route = useRoute();
-  const params=route.params as ChordString;
+  const params=route.params as types.ChordString;
   const chordString = params.chordString;
   const [error, setError]=useState();
-  const [response,setResponse]=useState();
+  const [songs, setSongs]=useState<types.SongResult[]>();
   const [isLoading, setLoading]=useState(true);
-  const [tracks, setTracks]=useState();
+  const [tracks, setTracks]=useState<types.TrackResults>();
   const [offset, setOffset]=useState(0);
   const [tracksBool, setTrackBool ]=useState(true);
-  const [reload, setReload]=useState(true);
   
-
   useEffect(()=>{
-    getResponse();
+    getSongs();
   });
   
-  const getResponse=async()=>{
-    if (reload){
-      setReload(false);
-      setTracks(null);
-      setLoading(true);
-      Loading();
-      await fetch("https://audio-analysis.eecs.qmul.ac.uk/function/search/audiocommons/10/" + String(offset) +"?namespaces=jamendo-tracks&chords="+chordString)
-    .then(res=>res.json())
-    .then(
-      (result)=>{
-        setResponse(result);
-        setTrackBool(true);
-    },
-    (error)=>{
-      setLoading(false);
-      setError(error);
-    });
+  const getSongs=async()=>{
+    if(!songs){
+      await fetch("https://audio-analysis.eecs.qmul.ac.uk/function/search/audiocommons/50/?namespaces=jamendo-tracks&chords="+chordString)
+      .then(res=>res.json())
+      .then(
+        (result)=>{
+          setSongs(result as types.SongResult[]);
+          setTrackBool(true);
+      },
+      (error)=>{
+        setLoading(false);
+        setError(error);
+      });
     }
-    if (response&&tracksBool){
-      let idsString="";
-      for(let i=0;i<response.length;i++){
-        if(i<response.length-1){
-          idsString+=response[i].id.split(":")[1] + "+";
-        }
-        else{
-          idsString+=response[i].id.split(":")[1];
-        }
-      }
+    if (songs&&tracksBool&&!tracks){
+      let idsString = songs.map((song=>song.id.split(":")[1])).join('+')
       console.log(idsString);
       getTracks(idsString);
       setTrackBool(false);
@@ -65,7 +48,7 @@ export default function ResultsScreen({navigation}) {
     .then(res=>res.json())
     .then(
       (result)=>{
-        setTracks(result);
+        setTracks(result as types.TrackResults);
         setLoading(false);
     },
     (error)=>{
@@ -82,82 +65,70 @@ export default function ResultsScreen({navigation}) {
     if (error){
       return <Text>{error}</Text>;
     }
-    if (response!=null&&tracks!=null){
-      return returnIDs();
+    if (songs!=null&&tracks!=null){
+      return returnSongs();
     }
   };
 
-  let Results=[];
-  function getResults(){
-    for(let i=0;i<Math.min(5,tracks.headers.results_count);i++){
-      Results.push(
-        <Box key={i} style={styles.Box}>
+  function SongResults(props: types.TrackResultProps){
+    return(
+      <Box style={styles.Box}>
           <HStack space={1.5}>
             <Image 
               style={styles.img}
               source={{
-                uri:tracks.results[i].album_image
+                uri:props.result.album_image
               }}
             />
             <View style={styles.songInfo}>
-              <Text style={styles.title}>{tracks.results[i].name}</Text>
-              <Text>By {tracks.results[i].artist_name}</Text>
+              <Text style={styles.title}>{props.result.name}</Text>
+              <Text>By {props.result.artist_name}</Text>
             </View>
             <Pressable
-            onPress={() => {
-              let objArray;
-              for(let j=0;j<response.length;j++){
-                if(response[j].id.split(":")[1]==tracks.results[i].id){
-                  console.log(tracks.results[i].id)
-                  objArray = response[j].chords.chordSequence;
-                }
-              }
-              navigation.navigate('Song', {chosenSong:tracks.results[i].id, chordArray: objArray})
+              onPress={() => {
+                handleNavigation(props.result.id)
               }}>
-                <Image
-                  style={styles.buttonImg}
-                  source={require('../Img/Forward.png')}
-                />
+              <Image
+                style={styles.buttonImg}
+                source={require('../Img/Forward.png')}
+              />
             </Pressable>
           </HStack>
         </Box>
-      )
-    }
+    )
   }
 
-  const returnIDs =()=>{
+  function handleNavigation(id){
+    let chordSequence = songs.find((song)=>song.id.split(":")[1]==id).chords.chordSequence;
+    navigation.navigate('Song', {chosenSong:id, chordSequence: chordSequence})
+  }
+
+  const returnSongs =()=>{
     return <View>
       <Box borderRadius="md">
       <VStack style={{alignItems:'center'}} space="1">
         {offset!=0? 
-          <Pressable onPress={()=>{LoadPreviousIDs();}}>
+          <Pressable onPress={()=>{setOffset(offset-5)}}>
             <Image style={styles.button} source={require('../Img/Up.png')}/>
           </Pressable>
-        : null}
+        : <View style={{height:50}}></View>}
         <View style={styles.resultsArea}> 
           <VStack space="5">
-            {getResults()}
-            {Results}
+            {
+              tracks.results.slice(offset, offset+5).map((result, i)=>(
+                <SongResults key={i} result={result}/>
+              ))
+            }
           </VStack>
         </View>
-        {tracks.headers.results_count>=5?
-          <Pressable onPress={()=>{LoadNextIDs();}}>
+        {tracks.headers.results_count-offset>5?
+          <Pressable onPress={()=>{setOffset(offset+5);}}>
             <Image style={styles.button} source={require('../Img/Down.png')}/>
           </Pressable>
-        :null}
+        :<View style={{height:50}}></View>}
       </VStack>
       </Box>
     </View>;
-  }
-
-  function LoadNextIDs(){
-    setOffset(offset+10);
-    setReload(true);
-  }
-
-  function LoadPreviousIDs(){
-    setOffset(offset-10);
-    setReload(true);
   }
 
   return (
