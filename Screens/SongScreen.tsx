@@ -5,33 +5,27 @@ import * as React from 'react';
 import {useState, useEffect} from "react";
 import {Audio } from 'expo-av';
 import {Slider, HStack, Center} from 'native-base';
-
-type ChosenSong ={
-  chosenSong :string;
-}
-
-type ChordArray = {
-    chordArray: object[];
-}
+import * as utils from '../lib/utils';
+import * as types from '../lib/types';
 
 
 export default function SongScreen({navigation}){
     const route =useRoute();
-    const params=route.params as ChosenSong;
-    const params1 =route.params as ChordArray;
+    const params=route.params as types.ChosenSong;
+    const params1 =route.params as types.ChordSequence;
     const songChosen =params.chosenSong;
-    const chordArray = params1.chordArray;
+    const chordArray = params1.chordSequence;
 
 
     const [isLoading, setLoading]=useState(true);
     const [error, setError]=useState();
     const sound = React.useRef(new Audio.Sound);
     const [songLength, setSongLength] = useState(0);
-    const [songPos, setSongPos] = useState(0);
+    const [songPosition, setSongPosition] = useState(0);
     const [Waveform, setWaveform] = useState([]);
     const[status, setStatus]=useState(false);
-    const [data, setData] = useState();
-    const [currentChord, setCurrentChord]= useState();
+    const [track, setTrack] = useState<types.TrackResults>();
+    const [currentChord, setCurrentChord]= useState<string>();
     const [totalChords, setTotalChords] = useState([]);
     const [chordMenuIndex, setChordMenuIndex] = useState(0);
 
@@ -51,7 +45,7 @@ export default function SongScreen({navigation}){
         try{
             const song = await sound.current.getStatusAsync();
             if(song.isLoaded && song.isPlaying==true){
-                setSongPos(song.positionMillis);
+                setSongPosition(song.positionMillis);
                 chordArray.forEach((item)=>{
                     if((item.start<song.positionMillis/1000)&&(item.end>=song.positionMillis/1000)){
                         setCurrentChord(item.label);
@@ -80,15 +74,14 @@ export default function SongScreen({navigation}){
                 }
                 if (!result.results[0].audiodownload_allowed){
                     console.log("Not allowed to download audio");
-                    getTotalChords();
                     setLoading(false);
                     return;
                 }
                 console.log("chord array found: " + chordArray);
                 console.log(result);
-                getTotalChords();
-                setData(result);
-                getPeaks(result);
+                setTotalChords(utils.getTotalChords(chordArray));
+                setTrack(result as types.TrackResults);
+                setWaveform(utils.getPeaks(result));
                 loadSong(result);
             },
             (error)=>{
@@ -98,26 +91,14 @@ export default function SongScreen({navigation}){
             });
     }
 
-    function getTotalChords(){
-        let chords =[];
-        chordArray.forEach((item)=>{
-            if(!chords.includes(item.label)){
-                chords.push(item.label);
-            }
-        })
-        setTotalChords(chords);
-        console.log("This is the total chords: " + chords);
-    }
-
-
-    const loadSong = async(data)=>{
-         if (data==null){
-            console.log("Api data not loaded");
+    const loadSong = async(track)=>{
+         if (track==null){
+            console.log("Api track not loaded");
          }
-         if (data!=null){
-            console.log("Api data found");
+         if (track!=null){
+            console.log("Api track found");
             try{
-                const song = await sound.current.loadAsync({uri: data.results[0].audio}, {}, true);
+                const song = await sound.current.loadAsync({uri: track.results[0].audio}, {}, true);
                if(!song.isLoaded){
                     console.log("Song did not load");
                 } else{
@@ -133,20 +114,7 @@ export default function SongScreen({navigation}){
          }
     }
 
-    function getPeaks (data){
-        console.log(data.results[0].waveform);
-        const peaksStringArray = data.results[0].waveform.split(",");
-        console.log(peaksStringArray[2]);
-        var peaksIntArray=[];
-        let j=0;
-        for (let i=1;i<peaksStringArray.length; i+=15){
-            peaksIntArray[j]= parseInt(peaksStringArray[i]);
-            j++;
-        }
-        setWaveform(peaksIntArray);
-        console.log(peaksIntArray);
-        console.log("peaks array length: " + peaksIntArray.length);
-    } 
+     
 
     const playPauseSong = async()=>{
         try{
@@ -155,14 +123,14 @@ export default function SongScreen({navigation}){
                 console.log(song.positionMillis);
                 sound.current.playAsync();
                 setStatus(true);
-                setSongPos(song.positionMillis);
+                setSongPosition(song.positionMillis);
             
             }
             else if(song.isLoaded && song.isPlaying &&(song.positionMillis!=song.durationMillis)){
                 console.log(song.positionMillis);
                 sound.current.pauseAsync();
                 setStatus(false);
-                setSongPos(song.positionMillis);
+                setSongPosition(song.positionMillis);
             }
             else{
                 console.log("Song not loaded");
@@ -180,7 +148,7 @@ export default function SongScreen({navigation}){
                 sound.current.setPositionAsync(song.durationMillis);
                 sound.current.pauseAsync();
                 setStatus(false);
-                setSongPos(song.durationMillis);
+                setSongPosition(song.durationMillis);
             }
             else{
                 console.log("Song not loaded");
@@ -197,12 +165,12 @@ export default function SongScreen({navigation}){
             if(song.isLoaded && song.isPlaying){
                 sound.current.replayAsync();
                 setStatus(true);
-                setSongPos(0);
+                setSongPosition(0);
             }
             else if(song.isLoaded && !song.isPlaying){
                 sound.current.setPositionAsync(0);
                 setStatus(false);
-                setSongPos(0);
+                setSongPosition(0);
             }
             else{
                 console.log("Song not loaded");
@@ -217,11 +185,11 @@ export default function SongScreen({navigation}){
         try{
             const song = await sound.current.getStatusAsync();
             if(song.isLoaded && song.isPlaying){
-                setSongPos(pos);
+                setSongPosition(pos);
                 sound.current.playFromPositionAsync(pos);
             }
             else if(song.isLoaded && !song.isPlaying){
-                setSongPos(pos);
+                setSongPosition(pos);
                 sound.current.setPositionAsync(pos);
                 console.log(song.positionMillis);
             }
@@ -234,100 +202,75 @@ export default function SongScreen({navigation}){
         }
     }
 
-    let res=[];
-    function getWaves(){
-        if(Waveform!=null){
-            Waveform.forEach((wave, i)=>{
-                res.push(<View key={i} style={[styles.waveLine, {height:(wave/Math.max(...Waveform))*50}]}></View>)
-            })
-        }
-        else{
-            return null;
-        }
-    }
-
-
     const player=()=>{
         return <View style={styles.container}>
+            <StatusBar style="auto"/>
             <View>
-                <StatusBar style="auto"/>
-                <View>
-                    <View style={styles.songInfoArea}>
-                        <View style={styles.titleBox}>
-                            <Text style={styles.title}>{data.results[0].name} By {data.results[0].artist_name}</Text>
-                        </View>
-                        <HStack space={.5}>
-                            <View>
-                            <View style={styles.info}>
-                                <Text style={styles.infoText}>{data.results[0].name} was release in {data.results[0].releasedate} by {data.results[0].artist_name}. This is track number {data.results[0].position} on the album {data.results[0].album_name}.</Text>
-                            </View>
-                            </View>
-                            <View>
-                            <Image
-                                style={styles.albImg}
-                                source={{
-                                uri:data.results[0].album_image
-                                }}
-                            />
-                            </View>
-                        </HStack>
+                <View style={styles.songInfoArea}>
+                    <View style={styles.titleBox}>
+                        <Text style={styles.title}>{track.results[0].name} By {track.results[0].artist_name}</Text>
                     </View>
-                    <Text style={styles.totalChordsTitle}>Total Chords:</Text>
-                    <HStack space={1.5} marginTop={3} justifyContent="center">
-                        {chordMenuIndex!=0?
-                            <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
-                                <Image style={styles.buttonImg} source={require('../Img/Back.png')}/>
-                            </Pressable>
-                        :<View style={{width:50}}/>}
-                        {totalChords?
-                            <HStack space={1.5} justifyContent="center">
-                                {
-                                    totalChords.slice(chordMenuIndex, chordMenuIndex+3).map((chord, i)=>(
-                                        <View style={styles.chordArea} key={i}>
-                                            <Text style={{color:'white'}}>{chord}</Text>
-                                        </View>
-                                    ))
-                                }
-                            </HStack>
-                        :null}
-                        {(totalChords.length-chordMenuIndex)>3?
-                            <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
-                                <Image style={styles.buttonImg} source={require('../Img/Forward.png')}/>
-                            </Pressable>
-                        :<View style={{width:50}}/>}
+                    <HStack space={.5}>
+                        <View>
+                        <View style={styles.info}>
+                            <Text style={styles.infoText}>{track.results[0].name} was release in {track.results[0].releasedate} by {track.results[0].artist_name}. This is track number {track.results[0].position} on the album {track.results[0].album_name}.</Text>
+                        </View>
+                        </View>
+                        <View>
+                        <Image
+                            style={styles.albImg}
+                            source={{
+                            uri:track.results[0].album_image
+                            }}
+                        />
+                        </View>
                     </HStack>
-                    <View style={styles.theoryArea}>
-                        <HStack style={{alignItems: 'center'}} space={1.5} marginTop={10}>
-                            {currentChord!=null?
-                            <View>
-                                <Text style={{fontWeight:'bold'}}>Chord Playing: </Text>
-                                <View style={styles.chordArea}>
-                                    <Text style={{color:'white'}}>{currentChord}</Text>
-                                </View>
-                            </View>
-                            :
-                            <View>
-                                <HStack style={{alignItems: 'center'}} space={1.5}>
-                                    <Text style={{fontWeight:'bold'}}>Chord Playing: </Text>
-                                    <View style={styles.chordArea}>
-                                        <Text style={{color:'white'}}>None</Text>
+                </View>
+                <Text style={styles.totalChordsTitle}>Total Chords:</Text>
+                <HStack space={1.5} marginTop={3} justifyContent="center">
+                    {chordMenuIndex!=0?
+                        <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
+                            <Image style={styles.backForwardImg} source={require('../Img/Back.png')}/>
+                        </Pressable>
+                    :<View style={{width:50}}/>}
+                    {totalChords?
+                        <HStack space={1.5} justifyContent="center">
+                            {
+                                totalChords.slice(chordMenuIndex, chordMenuIndex+3).map((chord, i)=>(
+                                    <View style={styles.chordArea} key={i}>
+                                        <Text style={{color:'white'}}>{chord}</Text>
                                     </View>
-                                </HStack>
-                            </View>
+                                ))
                             }
                         </HStack>
-                    </View>
+                    :null}
+                    {(totalChords.length-chordMenuIndex)>3?
+                        <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
+                            <Image style={styles.backForwardImg} source={require('../Img/Forward.png')}/>
+                        </Pressable>
+                    :<View style={{width:50}}/>}
+                </HStack>
+                <View style={styles.theoryArea}>
+                    <HStack style={{alignItems: 'center'}} space={1.5} marginTop={10}>
+                        <Text style={{fontWeight:'bold'}}>Chord Playing: </Text>
+                        <View style={styles.chordArea}>
+                            {currentChord!=null? <Text style={{color:'white'}}>{currentChord}</Text> :<Text style={{color:'white'}}>None</Text>}
+                        </View>
+                    </HStack>
                 </View>
             </View>
             <View style={styles.PlayerContainer}>
-                <Slider style={styles.selfUpdatingSlider} width={325} value={songPos} minValue={0} maxValue={songLength} >
+                <Slider style={styles.selfUpdatingSlider} width={325} value={songPosition} minValue={0} maxValue={songLength} >
                     <Slider.Track >
-                        <Slider.FilledTrack bg='white' />
+                        <Slider.FilledTrack bg='rgb(18,18,18)' />
                     </Slider.Track >
                 </Slider>
                 <View style={styles.wave}>
-                    {getWaves()}
-                    {res}
+                    {Waveform?
+                        Waveform.map((wave, i)=>(
+                            <View key={i} style={[styles.waveLine, {height:(wave/Math.max(...Waveform))*50}]}/>
+                        ))
+                    :null}
                 </View>
                 <Slider style={styles.draggingSlider} width={325} defaultValue={0} minValue={0} maxValue={songLength} onChangeEnd={pos=>{
                     changeTrackPosition(pos);
@@ -342,8 +285,8 @@ export default function SongScreen({navigation}){
                         <Image style={styles.skipReplayImg} source={require('../Img/ReplayWhite.png')}/>
                     </Pressable>
                     <Pressable  onPress={()=>{playPauseSong();}}>
-                        {!status? <Image style={styles.img} source={require('../Img/PlayWhite.png')}/>
-                        : <Image style={styles.img} source={require('../Img/PauseWhite.png')}/>}
+                        {!status? <Image style={styles.pausePlayImage} source={require('../Img/PlayWhite.png')}/>
+                        : <Image style={styles.pausePlayImage} source={require('../Img/PauseWhite.png')}/>}
                     </Pressable>
                     <Pressable style={styles.imgArea} onPress={()=>{skipSong()}}>
                         <Image style={styles.skipReplayImg} source={require('../Img/SkipWhite.png')}/>
@@ -357,15 +300,16 @@ export default function SongScreen({navigation}){
         if (isLoading){
           return <Text>Loading...</Text>;
         }
-        if (error){
+        else if (error){
           return <Text>{error}</Text>;
         }
-        if (sound!=null&&data!=null){
+        else if (sound!=null&&track!=null){
             return player();
         }
-        if(!isLoading&&!error&&!data){
+        else{
             return <Text>Song cannot be found</Text>
         }
+
     };
 
     return (
@@ -400,7 +344,7 @@ const styles = StyleSheet.create({
         width: 0,
         backgroundColor: 'white',
     },
-    img:{
+    pausePlayImage:{
         padding:1,
         width:40,
         height: 40,
@@ -418,10 +362,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     selfUpdatingSlider:{
-        marginBottom:-37
+        marginBottom:-37,
+        position: 'relative',
+        zIndex:2
     },
     draggingSlider:{
-        marginTop:-37
+        marginTop:-37,
+        position: 'relative',
+        zIndex:1
     },
     songContainer: {
         width: '100%',
@@ -487,7 +435,7 @@ const styles = StyleSheet.create({
         marginLeft:20,
         fontWeight:'bold'
     },
-    buttonImg:{
+    backForwardImg:{
         padding:1,
         width:50,
         height: 50,
