@@ -6,6 +6,8 @@ import {useState, useEffect} from "react";
 import { HStack } from 'native-base';
 import info, { Chord } from '../chords';
 import { SoundContext } from '../utils/SoundContext';
+import * as utils from '../lib/utils';
+import {PlayChordButtonProps}  from '../lib/interfaces';
 
 export default function SearchScreen({navigation}){
   const [chordMenuIndex, setChordMenuIndex] = useState(0);
@@ -15,10 +17,6 @@ export default function SearchScreen({navigation}){
   const [chordsSelected, setChordsSelected] = useState<Chord[]>([]);
   const [currentChordSelected, setCurrentChordSelected] = useState<Chord>();
   const [presetSelected, setPresetSelected] = useState();
-
-  interface PlayChordButtonProps {
-      chord: Chord,
-  }
 
   // event handlers
 
@@ -61,36 +59,7 @@ export default function SearchScreen({navigation}){
       )
   }
 
-
   // helpers
-
-  function generateSelectedChordsString() {
-      return chordsSelected.map(chord => chord.name).join('-');
-  }
-
-  function generateTheoryString(chord: Chord) {
-      let theory = "";
-      if(presetSelected){
-        theory+="\n";
-      }
-      theory += info.terminology[chord.type];
-      theory += chord.notes + ". ";
-      if (chord.flat) {
-          theory += "\n\n" + info.terminology.flat;
-      }
-      return theory;
-  }
-
-  function generatePresetString(preset){
-    console.log("preset string being generated");
-    let theory ="";
-    info.presets.forEach((item)=>{
-      if(item.key==preset){
-        theory+=info.terminology[item.type];
-      }
-    });
-    return theory;
-  }
 
   function clearSearch(){
     setChordsSelected([]);
@@ -170,7 +139,7 @@ export default function SearchScreen({navigation}){
             <View>
                 {!(chordsSelected.length==0)?
                   <Pressable style={styles.button} onPress={()=>{
-                    navigation.navigate('Results', {chordString:generateSelectedChordsString()})
+                    navigation.navigate('Results', {chordString:utils.generateSelectedChordsString(chordsSelected)})
                   }}>
                     <Text style={{color:'white'}}>Submit</Text>
                   </Pressable>
@@ -178,19 +147,19 @@ export default function SearchScreen({navigation}){
             </View>
           </HStack>
             {!(chordsSelected.length==0)? 
-              <Text style={styles.chordText}>Current chords: {generateSelectedChordsString()} </Text>
+              <Text style={styles.chordText}>Current chords: {utils.generateSelectedChordsString(chordsSelected)} </Text>
             :null} 
         </View>
         {currentChordSelected || presetSelected ?
           <View style={styles.terminologyArea}>
             {presetSelected?
               <Text style={{fontSize:15, color: 'white'}}>
-                {generatePresetString(presetSelected)}
+                {utils.generatePresetString(presetSelected)}
               </Text>
             :null}
             {currentChordSelected?
               <Text style={{fontSize:15, color: 'white'}}>
-                {generateTheoryString(currentChordSelected)}
+                {utils.generateTheoryString(currentChordSelected, presetSelected)}
                 </Text>
             :null}
           </View>
