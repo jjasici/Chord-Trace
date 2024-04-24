@@ -67,22 +67,17 @@ export default function SearchScreen({navigation}){
   }
 
   async function playSound(chordName: string) {
-        if (sounds[chordName]) {
-          console.log('Playing sound', chordName);
-          await sounds[chordName].replayAsync();
-        } else {
-            console.log('Sound not loaded');
-            console.log('list of all loaded sounds', Object.keys(sounds));
-        }      
+      if (sounds[chordName]) {
+        console.log('Playing sound', chordName);
+        await sounds[chordName].replayAsync();
+      } else {
+          console.log('Sound not loaded');
+          console.log('list of all loaded sounds', Object.keys(sounds));
+      }      
   }
 
   useEffect(()=>{
-    let totalPresets =[];
-      for (let i=0; i<info.presets.length;i++){
-        totalPresets = presets;
-        totalPresets.push(info.presets[i].key);
-      }   
-      setPresets(totalPresets);
+    setPresets(utils.getTotalPresets());
   }, []);
 
   return (
@@ -105,9 +100,9 @@ export default function SearchScreen({navigation}){
         </View>
         <View>
           <HStack space={2} justifyContent="center" marginTop={0}>
-            <View style={styles.left}>
+            <View style={styles.prevButton}>
               {((chordMenuIndex==3 && availableChords.length>0)||(availableChords.length==24&&chordMenuIndex>=3))? <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
-                <Image style={styles.img} source={require('../Img/Back.png')} />
+                <Image style={styles.iconImg} source={require('../Img/Back.png')} />
               </Pressable> :<View style={{width:50}}/>}
             </View>
             {availableChords.length>0?
@@ -120,9 +115,9 @@ export default function SearchScreen({navigation}){
               </HStack>
               : null
             }
-            <View style={styles.right}>
+            <View style={styles.nextButton}>
               {((chordMenuIndex==0 && availableChords.length>0)||(availableChords.length==24 && chordMenuIndex<21))? <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
-                  <Image style={styles.img} source={require('../Img/Forward.png')} />
+                  <Image style={styles.iconImg} source={require('../Img/Forward.png')} />
               </Pressable> :<View style={{width:50}}/>}
             </View>
           </HStack>
@@ -209,11 +204,10 @@ export const styles = StyleSheet.create({
     height: 50,
     alignItems: 'center',
   },
-  right:{
+  nextButton:{
     marginRight:-340,
-
   },
-  left:{
+  prevButton:{
     marginLeft:-340,
   },
   chordText:{
@@ -229,7 +223,7 @@ export const styles = StyleSheet.create({
     borderRadius:10,
     margin: 10,
   },
-  img:{
+  iconImg:{
     padding:1,
     width:50,
     height: 50,

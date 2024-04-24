@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View, Button, Pressable, Image } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import {useState, useEffect} from "react";
-import {Audio } from 'expo-av';
+import {Audio} from 'expo-av';
 import {Slider, HStack} from 'native-base';
 
 
@@ -87,10 +87,6 @@ export default function SongScreen({navigation}){
                 console.log(error.message);
             }
          }
-    }
-
-    function onPlaybackStatusUpdate(){
-
     }
 
     function getPeaks (data){

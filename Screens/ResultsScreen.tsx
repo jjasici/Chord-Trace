@@ -5,8 +5,9 @@ import {useState, useEffect} from "react";
 import * as React from 'react';
 import {Box, HStack, VStack} from 'native-base';
 import * as types from '../lib/types';
+import * as utils from '../lib/utils';
 
-export default function ResultsScreen({navigation}) {
+export default function ResusltsScreen({navigation}) {
   const route = useRoute();
   const params=route.params as types.ChordString;
   const chordString = params.chordString;
@@ -15,7 +16,6 @@ export default function ResultsScreen({navigation}) {
   const [isLoading, setLoading]=useState(true);
   const [tracks, setTracks]=useState<types.TrackResults>();
   const [offset, setOffset]=useState(0);
-  const [tracksBool, setTrackBool ]=useState(true);
   
   useEffect(()=>{
     getSongs();
@@ -28,18 +28,14 @@ export default function ResultsScreen({navigation}) {
       .then(
         (result)=>{
           setSongs(result as types.SongResult[]);
-          setTrackBool(true);
       },
       (error)=>{
         setLoading(false);
         setError(error);
       });
     }
-    if (songs&&tracksBool&&!tracks){
-      let idsString = songs.map((song=>song.id.split(":")[1])).join('+')
-      console.log(idsString);
-      getTracks(idsString);
-      setTrackBool(false);
+    if (songs&&!tracks){
+      getTracks(utils.generateIDString(songs));
     }
   }
 
@@ -72,24 +68,24 @@ export default function ResultsScreen({navigation}) {
 
   function SongResults(props: types.TrackResultProps){
     return(
-      <Box style={styles.Box}>
+      <Box style={styles.songResult}>
           <HStack space={1.5}>
             <Image 
-              style={styles.img}
+              style={styles.albumImg}
               source={{
                 uri:props.result.album_image
               }}
             />
             <View style={styles.songInfo}>
-              <Text style={styles.title}>{props.result.name}</Text>
+              <Text style={styles.songTitle}>{props.result.name}</Text>
               <Text>By {props.result.artist_name}</Text>
             </View>
             <Pressable
               onPress={() => {
-                handleNavigation(props.result.id)
+                navigation.navigate('Song', {chosenSong:props.result.id, chordSequence: utils.getChordSequence(songs, props.result.id)})
               }}>
               <Image
-                style={styles.buttonImg}
+                style={styles.nextButtonImg}
                 source={require('../Img/Forward.png')}
               />
             </Pressable>
@@ -98,18 +94,13 @@ export default function ResultsScreen({navigation}) {
     )
   }
 
-  function handleNavigation(id){
-    let chordSequence = songs.find((song)=>song.id.split(":")[1]==id).chords.chordSequence;
-    navigation.navigate('Song', {chosenSong:id, chordSequence: chordSequence})
-  }
-
   const returnSongs =()=>{
     return <View>
       <Box borderRadius="md">
       <VStack style={{alignItems:'center'}} space="1">
         {offset!=0? 
           <Pressable onPress={()=>{setOffset(offset-5)}}>
-            <Image style={styles.button} source={require('../Img/Up.png')}/>
+            <Image style={styles.updateResultsButton} source={require('../Img/Up.png')}/>
           </Pressable>
         : <View style={{height:50}}></View>}
         <View style={styles.resultsArea}> 
@@ -123,7 +114,7 @@ export default function ResultsScreen({navigation}) {
         </View>
         {tracks.headers.results_count-offset>5?
           <Pressable onPress={()=>{setOffset(offset+5);}}>
-            <Image style={styles.button} source={require('../Img/Down.png')}/>
+            <Image style={styles.updateResultsButton} source={require('../Img/Down.png')}/>
           </Pressable>
         :<View style={{height:50}}></View>}
       </VStack>
@@ -146,7 +137,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  Box:{
+  songResult:{
     backgroundColor: 'lightgray',
     padding:5,
     height:70,
@@ -155,23 +146,23 @@ const styles = StyleSheet.create({
     alignItems:'flex-start',
     borderRadius: 10
   },
-  img:{
+  albumImg:{
     padding:1,
     width:60,
     height: 60,
     borderRadius: 10
   },
-  title:{
+  songTitle:{
     fontWeight: 'bold',
     fontSize:16,
     padding:1,
     marginBottom:3
   },
-  button:{
+  updateResultsButton:{
     width:50,
     height: 50,
   },
-  buttonImg:{
+  nextButtonImg:{
     padding:1,
     width:50,
     height: 50,
