@@ -1,5 +1,4 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
 import 'react-native-gesture-handler';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from "@react-navigation/stack";
@@ -8,11 +7,12 @@ import Home from "./Screens/SearchScreen";
 import Results from "./Screens/ResultsScreen";
 import Song from "./Screens/SongScreen";
 import { NativeBaseProvider } from 'native-base';
-import { useEffect } from 'react';
+import {useState, useEffect} from "react";
 import { LogBox } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Audio } from 'expo-av';
 import { SoundBoard, SoundContext } from './utils/SoundContext';
+import { AlertDialog } from "native-base";
 
 function App() {
  
@@ -77,7 +77,12 @@ function App() {
                 headerTintColor: 'white',
                 headerTitleStyle:{
                   fontSize: 20,
-                }
+                }, 
+                headerRight:()=>(
+                  <Pressable onPress={()=> alert('Thank you for using my application!\nIcons by https://icons8.com/')}>
+                      <Image style={{height:30, width:30, margin: 10}} source={require('./Img/DownWhite.png')} />
+                  </Pressable>
+                )
               }}
             >
             <Stack.Screen options={{gestureEnabled: false}} name="Search" component={Home}/>
