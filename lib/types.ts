@@ -11,7 +11,8 @@ export type Result = {
     position : number, 
     releasedate : string,
     album_image : string,
-    audio: string
+    audio: string,
+    audiodownload_allowed: boolean
 }
 
 export type TrackResults= {
@@ -30,7 +31,9 @@ export type Chord ={
 }
 
 export type ChordSequence = {
-    chordSequence : Chord[]
+    chordSequence : Chord[],
+    confidence: number,
+    duration: number
 }
 
 export type SongResult = {
