@@ -1,7 +1,15 @@
 import info, { Chord } from '../chords';
+import * as types from './types';
+
+export function getTotalPresets(){
+  let totalPresets =[];
+    info.presets.forEach((preset)=>{
+      totalPresets.push(preset.key)
+    }) 
+    return totalPresets;
+}
 
 export function generatePresetString(preset){
-    console.log("preset string being generated");
     let theory ="";
     info.presets.forEach((item)=>{
       if(item.key==preset){
@@ -17,15 +25,23 @@ export function generateTheoryString(chord: Chord, presetSelected) {
       theory+="\n";
     }
     theory += info.terminology[chord.type];
-    theory += chord.notes + ". ";
+    theory += chord.notes + ".";
     if (chord.flat) {
         theory += "\n\n" + info.terminology.flat;
     }
     return theory;
 }
 
-export function generateSelectedChordsString(chordsSelected) {
+export function generateSelectedChordsString(chordsSelected : Chord[]) {
     return chordsSelected.map(chord => chord.name).join('-');
+}
+
+export function generateIDString(songs : types.SongResult[]){
+    return songs.map((song=>song.id.split(":")[1])).join('+');
+}
+
+export function getChordSequence(songs: types.SongResult[], id: string){
+  return songs.find((song)=>song.id.split(":")[1]==id).chords.chordSequence;
 }
 
 export function getPeaks (track){
@@ -53,4 +69,31 @@ export function getTotalChords(chordArray){
       }
   })
   return chords;
+}
+
+export const loadTrack = async(sound, track : types.TrackResults)=>{
+  try{
+      const song = await sound.current.loadAsync({uri: track.results[0].audio}, {}, true);
+     if(!song.isLoaded){
+          console.log("Song did not load");
+          return null;
+      } else{
+          console.log("Song loaded");
+          return song;
+      }
+  }
+  catch (error){
+      console.log(error.message);
+      return null;
+  }
+}
+
+export const getSongStatus = async(sound)=>{
+    try{
+        const song = await sound.current.getStatusAsync();
+        return song;
+    }
+    catch (error){
+      console.log(error.message);
+    }
 }
