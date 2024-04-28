@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
+import { StyleSheet, View} from 'react-native';
 import 'react-native-gesture-handler';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from "@react-navigation/stack";
@@ -6,15 +6,16 @@ import * as React from 'react';
 import Home from "./Screens/SearchScreen";
 import Results from "./Screens/ResultsScreen";
 import Song from "./Screens/SongScreen";
-import { NativeBaseProvider } from 'native-base';
-import {useState, useEffect} from "react";
+import { NativeBaseProvider, Spinner, Heading, HStack } from 'native-base';
+import {useEffect} from "react";
 import { LogBox } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Audio } from 'expo-av';
 import { SoundBoard, SoundContext } from './utils/SoundContext';
-import { AlertDialog } from "native-base";
 
-function App() {
+
+
+function App({}) {
  
   async function loadAllSounds(): Promise<SoundBoard> {
     return {
@@ -67,10 +68,15 @@ function App() {
           {
             Object.keys(sounds).length == 0 ?
             <View style={styles.container}>
-              <Text>Loading app..</Text>
+              <HStack space={2} alignItems="center">
+                <Spinner color="black" accessibilityLabel="Loading posts" />
+                <Heading color="black" fontSize="md">
+                  Loading
+                </Heading>
+              </HStack>
             </View>
             : <Stack.Navigator 
-              screenOptions={{
+              screenOptions={()=>({
                 headerStyle:{
                   backgroundColor: 'rgb(18, 18, 18)'
                 },
@@ -78,12 +84,7 @@ function App() {
                 headerTitleStyle:{
                   fontSize: 20,
                 }, 
-                headerRight:()=>(
-                  <Pressable onPress={()=> alert('Thank you for using my application!\nIcons by https://icons8.com/')}>
-                      <Image style={{height:30, width:30, margin: 10}} source={require('./Img/DownWhite.png')} />
-                  </Pressable>
-                )
-              }}
+              })}
             >
             <Stack.Screen options={{gestureEnabled: false}} name="Search" component={Home}/>
             <Stack.Screen options={{gestureEnabled: false}} name="Results" component={Results}/>
