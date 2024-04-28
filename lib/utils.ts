@@ -71,6 +71,8 @@ export function getTotalChords(chordArray){
   return chords;
 }
 
+// not testable
+
 export const loadTrack = async(sound, track : types.TrackResults)=>{
   try{
       const song = await sound.current.loadAsync({uri: track.results[0].audio}, {}, true);
