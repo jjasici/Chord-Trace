@@ -1,11 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, Image, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
 import {useRoute} from "@react-navigation/native";
 import {useState, useEffect} from "react";
 import * as React from 'react';
-import {Box, HStack, VStack} from 'native-base';
+import {Box, HStack, VStack, Spinner, Heading} from 'native-base';
 import * as types from '../lib/types';
 import * as utils from '../lib/utils';
+import { AntDesign } from '@expo/vector-icons';
 
 export default function ResusltsScreen({navigation}) {
   const route = useRoute();
@@ -16,11 +17,15 @@ export default function ResusltsScreen({navigation}) {
   const [isLoading, setLoading]=useState(true);
   const [tracks, setTracks]=useState<types.TrackResults>();
   const [offset, setOffset]=useState(0);
+
+  // hooks
   
   useEffect(()=>{
     getSongs();
   });
   
+  // api calls
+
   const getSongs=async()=>{
     if(!songs){
       await fetch("https://audio-analysis.eecs.qmul.ac.uk/function/search/audiocommons/50/?namespaces=jamendo-tracks&chords="+chordString)
@@ -54,17 +59,7 @@ export default function ResusltsScreen({navigation}) {
   }
 
 
-  const Loading=()=>{
-    if (isLoading){
-      return <Text>Loading...</Text>;
-    }
-    if (error){
-      return <Text>{error}</Text>;
-    }
-    if (songs!=null&&tracks!=null){
-      return returnSongs();
-    }
-  };
+  // components
 
   function SongResults(props: types.TrackResultProps){
     return(
@@ -84,15 +79,29 @@ export default function ResusltsScreen({navigation}) {
               onPress={() => {
                 navigation.navigate('Song', {chosenSong:props.result.id, chordSequence: utils.getChordSequence(songs, props.result.id)})
               }}>
-              <Image
-                style={styles.nextButtonImg}
-                source={require('../Img/Forward.png')}
-              />
+              <AntDesign name="right" style={{alignItems: 'center', padding:15}} size={30} color="black" />
             </Pressable>
           </HStack>
         </Box>
     )
   }
+
+  const Loading=()=>{
+    if (isLoading){
+      return <HStack space={2} alignItems="center">
+        <Spinner color="black" accessibilityLabel="Loading posts" />
+        <Heading color="black" fontSize="md">
+          Loading
+        </Heading>
+    </HStack>;
+    }
+    if (error){
+      return <Text>{error}</Text>;
+    }
+    if (songs!=null&&tracks!=null){
+      return returnSongs();
+    }
+  };
 
   const returnSongs =()=>{
     return <View>
@@ -100,7 +109,7 @@ export default function ResusltsScreen({navigation}) {
       <VStack style={{alignItems:'center'}} space="1">
         {offset!=0? 
           <Pressable onPress={()=>{setOffset(offset-5)}}>
-            <Image style={styles.updateResultsButton} source={require('../Img/Up.png')}/>
+            <AntDesign name="up" style={{alignItems: 'center', padding:4}} size={40} color="black" />
           </Pressable>
         : <View style={{height:50}}></View>}
         <View style={styles.resultsArea}> 
@@ -114,7 +123,7 @@ export default function ResusltsScreen({navigation}) {
         </View>
         {tracks.headers.results_count-offset>5?
           <Pressable onPress={()=>{setOffset(offset+5);}}>
-            <Image style={styles.updateResultsButton} source={require('../Img/Down.png')}/>
+            <AntDesign name="down" style={{alignItems: 'center', padding:4}} size={40} color="black" />
           </Pressable>
         :<View style={{height:50}}></View>}
       </VStack>
@@ -158,16 +167,6 @@ const styles = StyleSheet.create({
     padding:1,
     marginBottom:3
   },
-  updateResultsButton:{
-    width:50,
-    height: 50,
-  },
-  nextButtonImg:{
-    padding:1,
-    width:50,
-    height: 50,
-    marginTop:5
-  }, 
   songInfo:{
     width:225
   }, 

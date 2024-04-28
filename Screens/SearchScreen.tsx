@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
 import * as React from 'react';
 import SelectDropdown from 'react-native-select-dropdown';
 import {useState, useEffect} from "react";
@@ -8,6 +8,7 @@ import info, { Chord } from '../chords';
 import { SoundContext } from '../utils/SoundContext';
 import * as utils from '../lib/utils';
 import {PlayChordButtonProps}  from '../lib/interfaces';
+import { AntDesign } from '@expo/vector-icons';
 
 export default function SearchScreen({navigation}){
   const [chordMenuIndex, setChordMenuIndex] = useState(0);
@@ -45,7 +46,7 @@ export default function SearchScreen({navigation}){
   }
   
   
-  // Components
+  // components
 
   function PlayChordButton(props: PlayChordButtonProps) {
       return (
@@ -76,6 +77,8 @@ export default function SearchScreen({navigation}){
       }      
   }
 
+  // hooks
+
   useEffect(()=>{
     setPresets(utils.getTotalPresets());
   }, []);
@@ -102,7 +105,7 @@ export default function SearchScreen({navigation}){
           <HStack space={2} justifyContent="center" marginTop={0}>
             <View style={styles.prevButton}>
               {((chordMenuIndex==3 && availableChords.length>0)||(availableChords.length==24&&chordMenuIndex>=3))? <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
-                <Image style={styles.iconImg} source={require('../Img/Back.png')} />
+                <AntDesign name="left" style={{alignItems: 'center', padding:4}} size={40} color="black" />
               </Pressable> :<View style={{width:50}}/>}
             </View>
             {availableChords.length>0?
@@ -117,7 +120,7 @@ export default function SearchScreen({navigation}){
             }
             <View style={styles.nextButton}>
               {((chordMenuIndex==0 && availableChords.length>0)||(availableChords.length==24 && chordMenuIndex<21))? <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
-                  <Image style={styles.iconImg} source={require('../Img/Forward.png')} />
+                <AntDesign name="right" style={{alignItems: 'center', padding:4}} size={40} color="black" />
               </Pressable> :<View style={{width:50}}/>}
             </View>
           </HStack>
@@ -222,10 +225,5 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgb(18, 18, 18)',
     borderRadius:10,
     margin: 10,
-  },
-  iconImg:{
-    padding:1,
-    width:50,
-    height: 50,
   }
 });

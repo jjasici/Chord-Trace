@@ -4,12 +4,13 @@ import {useRoute} from "@react-navigation/native";
 import * as React from 'react';
 import {useState, useEffect} from "react";
 import {Audio } from 'expo-av';
-import {Slider, HStack, Center} from 'native-base';
+import {Slider, HStack, Spinner, Heading} from 'native-base';
 import * as utils from '../lib/utils';
 import * as types from '../lib/types';
+import { AntDesign } from '@expo/vector-icons';
 
 
-export default function SongScreen({navigation}){
+export default function SongScreen(){
     const route =useRoute();
     const params=route.params as types.ChosenSong;
     const params1 =route.params as types.ChordSequence;
@@ -26,10 +27,11 @@ export default function SongScreen({navigation}){
     const [songPlayStatus, setSongPlayStatus]=useState(false);
     const [track, setTrack] = useState<types.TrackResults>();
     const [currentChord, setCurrentChord]= useState<string>();
-    const [currentChordEnd, setCurrentChordEnd] = useState<number>();
     const [nextChord, setNextChord] = useState<string>();
     const [totalChords, setTotalChords] = useState([]);
     const [chordMenuIndex, setChordMenuIndex] = useState(0);
+
+    // hooks
 
     useEffect(()=>{
         getTrackAPIData();
@@ -37,33 +39,14 @@ export default function SongScreen({navigation}){
 
     useEffect(()=>{
         const interval = setInterval(()=>{
-            updateTrackPosition();
+            updateTrackVariables();
         },1000);
 
         return () => clearInterval(interval);
     })
 
-    const updateTrackPosition = async()=>{
-        const song = await utils.getSongStatus(sound);
-        if(song.isLoaded && song.isPlaying){
-            setSongPosition(song.positionMillis);
-            chordArray.forEach((item)=>{
-                if((item.start<song.positionMillis/1000)&&(item.end>=song.positionMillis/1000)){
-                    setCurrentChord(item.label);
-                    setCurrentChordEnd(item.end);
-                }
-                else if((currentChordEnd)&&(item.start==currentChordEnd)){
-                    setNextChord(item.label);
-                }
-                else if((song.positionMillis==songLength)){
-                    setNextChord("None");
-                }
-            })
-        }
-        else if(song.isLoaded && !song.isPlaying){
-            setSongPlayStatus(false);
-        }
-    }
+    
+    // api calls
 
     const getTrackAPIData = async()=>{
         await fetch("https://api.jamendo.com/v3.0/tracks/?client_id=5ee07b07&format=jsonpretty&id="+songChosen)
@@ -87,6 +70,8 @@ export default function SongScreen({navigation}){
             });
     }
 
+    // helpers
+
     const loadSong = async(track : types.TrackResults)=>{
          if (track==null){
             console.log("Api track was not loaded");
@@ -94,14 +79,38 @@ export default function SongScreen({navigation}){
          if (track!=null){
             let song = await utils.loadTrack(sound, track)
             if(song!=null){
-                setSongLength(song.durationMillis);
+                setSongLength(song.durationMillis-1);
                 setSongPosition(0);
                 setLoading(false);
             }
          }
     }
 
-    const onPlayPauseButtonSelected = async()=>{
+    const updateTrackVariables = async()=>{
+        const song = await utils.getSongStatus(sound);
+        if(song.isLoaded && song.isPlaying){
+            setSongPosition(song.positionMillis);
+            for (let i=0;i<chordArray.length;i++){
+                if ((chordArray[i].start<song.positionMillis/1000)&&(chordArray[i].end>=song.positionMillis/1000)){
+                    setCurrentChord(chordArray[i].label);
+                    if (i!=chordArray.length-1){
+                        setNextChord(chordArray[i+1].label);
+                    }
+                    else{
+                        setNextChord("None");
+                    }
+                }
+            }
+        }
+        else if(song.isLoaded && !song.isPlaying){
+            setSongPlayStatus(false);
+        }
+    }
+
+
+    // event handlers
+
+    const onPlayPauseButtonClicked = async()=>{
         const song = await utils.getSongStatus(sound);
         if(song.isLoaded && !song.isPlaying &&(song.positionMillis!=song.durationMillis)){
             sound.current.playAsync();
@@ -150,7 +159,7 @@ export default function SongScreen({navigation}){
         }
     }
 
-    const changeTrackPosition = async(position : number)=>{
+    const onChangeTrackPosition = async(position : number)=>{
         const song = await utils.getSongStatus(sound);
         if(song.isLoaded && song.isPlaying){
             setSongPosition(position);
@@ -176,18 +185,16 @@ export default function SongScreen({navigation}){
                         <Text style={styles.songTitle}>{track.results[0].name} By {track.results[0].artist_name}</Text>
                     </View>
                     <HStack space={.5}>
-                        <View>
                         <View style={styles.songInfoArea}>
                             <Text style={styles.songInfoText}>{track.results[0].name} was release in {track.results[0].releasedate} by {track.results[0].artist_name}. This is track number {track.results[0].position} on the album {track.results[0].album_name}.</Text>
                         </View>
-                        </View>
                         <View>
-                        <Image
-                            style={styles.albumImg}
-                            source={{
-                            uri:track.results[0].album_image
-                            }}
-                        />
+                            <Image
+                                style={styles.albumImg}
+                                source={{
+                                    uri:track.results[0].album_image
+                                }}
+                            />
                         </View>
                     </HStack>
                 </View>
@@ -195,7 +202,7 @@ export default function SongScreen({navigation}){
                 <HStack space={1.5} marginTop={3} justifyContent="center">
                     {chordMenuIndex!=0?
                         <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex-3)}}>
-                            <Image style={styles.backForwardImg} source={require('../Img/Back.png')}/>
+                            <AntDesign name="left" style={{alignItems: 'center', padding:10}} size={30} color="black" />
                         </Pressable>
                     :<View style={{width:50}}/>}
                     {totalChords?
@@ -211,7 +218,7 @@ export default function SongScreen({navigation}){
                     :null}
                     {(totalChords.length-chordMenuIndex)>3?
                         <Pressable onPress={()=>{setChordMenuIndex(chordMenuIndex+3)}}>
-                            <Image style={styles.backForwardImg} source={require('../Img/Forward.png')}/>
+                            <AntDesign name="right" style={{alignItems: 'center', padding:10}} size={30} color="black" />
                         </Pressable>
                     :<View style={{width:50}}/>}
                 </HStack>
@@ -246,7 +253,7 @@ export default function SongScreen({navigation}){
                     :null}
                 </View>
                 <Slider style={styles.draggingSlider} width={325} defaultValue={0} minValue={0} maxValue={songLength} onChange={pos=>{setSongPosition(pos)}} onChangeEnd={pos=>{
-                    changeTrackPosition(pos);
+                    onChangeTrackPosition(pos);
                 }}>
                     <Slider.Track bg="transparent">
                         <Slider.FilledTrack bg='transparent'/>
@@ -255,14 +262,14 @@ export default function SongScreen({navigation}){
                 </Slider>
                 <HStack space={3} justifyContent="center" margin={5} style={{marginBottom:-3}}>
                     <Pressable style={styles.imgArea} onPress={()=>{onRestartButtonClicked()}}>
-                        <Image style={styles.skipReplayImg} source={require('../Img/ReplayWhite.png')}/>
+                        <AntDesign name="stepbackward" size={32} color="white" />
                     </Pressable>
-                    <Pressable  onPress={()=>{onPlayPauseButtonSelected();}}>
-                        {!songPlayStatus? <Image style={styles.pausePlayImg} source={require('../Img/PlayWhite.png')}/>
-                        : <Image style={styles.pausePlayImg} source={require('../Img/PauseWhite.png')}/>}
+                    <Pressable onPress={()=>{onPlayPauseButtonClicked()}}>
+                        {!songPlayStatus? <AntDesign name="play" size={32} color="white" />
+                        : <AntDesign name="pause" size={32} color="white" />}
                     </Pressable>
                     <Pressable style={styles.imgArea} onPress={()=>{onSkipButtonClicked()}}>
-                        <Image style={styles.skipReplayImg} source={require('../Img/SkipWhite.png')}/>
+                    <AntDesign name="stepforward" size={32} color="white" />
                     </Pressable>
                 </HStack>
             </View>
@@ -271,7 +278,12 @@ export default function SongScreen({navigation}){
 
     const Loading=()=>{
         if (isLoading){
-          return <Text>Loading...</Text>;
+          return <HStack space={2} alignItems="center">
+            <Spinner color="black" accessibilityLabel="Loading posts" />
+            <Heading color="black" fontSize="md">
+                Loading
+            </Heading>
+        </HStack>;
         }
         else if (error){
           return <Text>{error}</Text>;
@@ -310,24 +322,12 @@ const styles = StyleSheet.create({
         gap: 3,
         width: 325,
         alignItems: 'center',
-        bottom:0
+        bottom:5
     },
     waveLine:{
         flex:1,
         width: 0,
         backgroundColor: 'white',
-    },
-    pausePlayImg:{
-        padding:1,
-        width:40,
-        height: 40,
-        marginLeft:10,
-        marginRight:10
-    },
-    skipReplayImg:{
-        padding:1,
-        width:40,
-        height: 40,
     },
     imgArea:{
         justifyContent: 'center',
@@ -335,12 +335,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     selfUpdatingSlider:{
-        marginBottom:-37,
+        marginBottom:-32,
         position: 'relative',
         zIndex:1
     },
     draggingSlider:{
-        marginTop:-37,
+        marginTop:-32,
         position: 'relative',
         zIndex:2
     },
@@ -407,11 +407,6 @@ const styles = StyleSheet.create({
         marginTop:5,
         marginLeft:20,
         fontWeight:'bold'
-    },
-    backForwardImg:{
-        padding:1,
-        width:50,
-        height: 50,
     },
     songArea:{
         backgroundColor: 'rgb(18, 18, 18)',
