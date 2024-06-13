@@ -1,8 +1,10 @@
 # Chord Trace
 
-## Summary
+A cross platform mobile application, which helps users learn music theory by allowing users to search for songs by chord, view chord information, and then listen to the songs.
 
-Allows users to search for songs by chord, view chord terminology, and then listen to the songs.
+## Pre-requisites
+- [Node](https://nodejs.org/docs/latest/api/)
+- [Expo](https://docs.expo.dev/)
 
 ## Install
 
@@ -11,7 +13,6 @@ Allows users to search for songs by chord, view chord terminology, and then list
 ## Usage
 
 ```npx expo start```
-
 
 ## References:
 - [] freesound.org. (no date). Freesound - Piano Chords by blakengouda. [online] Available at: https://freesound.org/people/blakengouda/packs/29677/ [Accessed 19 February. 2024].
