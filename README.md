@@ -2,6 +2,8 @@
 
 A cross platform mobile application, which helps users learn music theory by allowing users to search for songs by chord, view chord information, and then listen to the songs.
 
+The paper, adjecent to this project can be found [here](./docs/FinalReportJonitaJasici.pdf)
+
 ## Pre-requisites
 - [Node](https://nodejs.org/docs/latest/api/)
 - [Expo](https://docs.expo.dev/)
